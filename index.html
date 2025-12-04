@@ -1,55 +1,75 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Moteur 3D de tir style Doom</title>
-  <style>
-    html,body{height:100%;margin:0;background:#0b0b0b;color:#ddd;font-family:system-ui,Segoe UI,Roboto,Arial}
-    #ui{position:fixed;left:12px;top:12px;z-index:10;background:rgba(0,0,0,0.45);padding:10px;border-radius:8px;backdrop-filter:blur(4px)}
-    canvas{display:block;margin:0 auto;max-width:100%;height:calc(100vh - 24px);background:#111;outline:none}
-    .hint{font-size:13px;line-height:1.4}
-    #fps{font-weight:700}
-    /* petit style pour mobile */
-    @media (max-width:600px){
-      #ui{left:8px;top:8px;padding:8px;font-size:13px}
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Doom Letters Wall — Jeu</title>
+<style>
+  :root{--ui-bg:rgba(0,0,0,0.45);--accent:#ffcc33}
+  html,body{height:100%;margin:0;background:#0b0b0b;color:#eee;font-family:Inter,system-ui,Segoe UI,Roboto,Arial}
+  #ui{position:fixed;left:12px;top:12px;z-index:20;background:var(--ui-bg);padding:10px;border-radius:8px;backdrop-filter:blur(4px);width:320px}
+  #ui h3{margin:0 0 6px 0;font-size:16px}
+  #ui .row{display:flex;gap:8px;align-items:center}
+  #hud{position:fixed;left:12px;bottom:12px;z-index:20;background:var(--ui-bg);padding:8px;border-radius:8px}
+  canvas{display:block;margin:0 auto;max-width:100%;height:calc(100vh - 24px);background:#111;outline:none}
+  .small{font-size:13px;color:#ddd}
+  .muted{color:#bbb;font-size:13px}
+  button{background:transparent;border:1px solid rgba(255,255,255,0.08);color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer}
+  button:hover{border-color:var(--accent)}
+  #debug{position:fixed;right:12px;top:12px;background:rgba(0,0,0,0.5);padding:8px;border-radius:6px;color:#ccc;font-size:12px;z-index:20}
+  @media (max-width:600px){#ui{width:220px;font-size:13px}}
+</style>
 </head>
 <body>
   <div id="ui">
-    <div class="hint">Contrôles: <strong>Z/S</strong> avancer/reculer • <strong>Q/D</strong> strafe • <strong>←/→</strong> tourner • <strong>Espace</strong> tirer • <strong>R</strong> réinitialiser</div>
-    <div class="hint">Touches alternatives: <strong>W/S/A/D</strong></div>
-    <div class="hint">Score: <span id="score">0</span> • Vie: <span id="hp">100</span> • FPS: <span id="fps">0</span></div>
+    <h3>Doom Letters Wall</h3>
+    <div class="small">Tire sur les lettres pour les collecter. Elles s'affichent sur le panneau mural.</div>
+    <div style="height:8px"></div>
+    <div class="row">
+      <div class="muted">Score</div><div id="score" style="margin-left:auto;font-weight:700">0</div>
+    </div>
+    <div style="height:6px"></div>
+    <div class="row">
+      <div class="muted">Vie</div><div id="hp" style="margin-left:auto;font-weight:700">100</div>
+    </div>
+    <div style="height:8px"></div>
+    <div class="row">
+      <button id="resetBtn">Réinitialiser</button>
+      <button id="clearBtn" title="Vider le panneau">Vider panneau</button>
+    </div>
+    <div style="height:8px"></div>
+    <div class="muted">Contrôles: Z/S W/S • Q/D A/D • ←/→ tourner • Espace tirer • R réinit</div>
+  </div>
+
+  <div id="debug" style="display:none">
+    <div>FPS: <span id="dbgFps">0</span></div>
+    <div>Ennemis: <span id="dbgEnemies">0</span></div>
   </div>
 
   <canvas id="screen" tabindex="0"></canvas>
 
 <script>
 /*
-  Moteur 3D de tir style Doom (raycasting) - tout en un fichier
-  - Carte en grille
-  - Raycasting colonne par colonne
-  - Sprites ennemis simples et tir
-  - Pas de ressources externes
+  Doom Letters Wall
+  - Raycasting engine
+  - Letter sprites to shoot and collect
+  - A wall panel displays collected text in real time
+  - Single-file, no external assets
 */
 
 const canvas = document.getElementById('screen');
 const ctx = canvas.getContext('2d');
 let W = canvas.width = Math.min(window.innerWidth, 1200);
-let H = canvas.height = Math.max(360, window.innerHeight - 24);
+let H = canvas.height = Math.max(420, window.innerHeight - 24);
+window.addEventListener('resize', ()=>{ W = canvas.width = Math.min(window.innerWidth, 1200); H = canvas.height = Math.max(420, window.innerHeight - 24); });
 
-window.addEventListener('resize', ()=>{
-  W = canvas.width = Math.min(window.innerWidth, 1200);
-  H = canvas.height = Math.max(360, window.innerHeight - 24);
-});
+const TILE = 64;
 
-canvas.focus();
-
-// Carte: 0 = vide, 1 = mur gris, 2 = mur rouge, 3 = mur bleu
+// Map legend
+// 0 empty, 1 wall grey, 2 wall red, 3 wall blue, 9 panel wall (texte)
 const map = [
   [1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,9,1],
   [1,0,2,0,0,0,0,3,0,2,0,1],
   [1,0,0,0,0,0,0,0,0,0,0,1],
   [1,0,0,0,1,1,1,0,0,0,0,1],
@@ -63,25 +83,23 @@ const map = [
 ];
 const MAP_W = map[0].length;
 const MAP_H = map.length;
-const TILE = 64; // taille logique
 
 // Player
-const player = {
-  x: TILE * 2.5,
-  y: TILE * 2.5,
-  angle: 0,
-  fov: Math.PI/3,
-  speed: 140, // px/s
-  rotSpeed: Math.PI, // rad/s
-  hp: 100
-};
+const player = { x: TILE*2.5, y: TILE*2.5, angle: 0, fov: Math.PI/3, speed: 140, rotSpeed: Math.PI, hp: 100 };
 
-// Ennemis (sprites)
-let enemies = [
-  {x: TILE*6.5, y: TILE*4.5, hp: 30, alive:true},
-  {x: TILE*9.2, y: TILE*8.2, hp: 30, alive:true},
-  {x: TILE*4.2, y: TILE*8.8, hp: 30, alive:true}
+// Letters as sprites
+// Each sprite: {x,y,char,alive}
+let letters = [
+  {x: TILE*5.2, y: TILE*3.5, char:'H', alive:true},
+  {x: TILE*7.6, y: TILE*2.8, char:'E', alive:true},
+  {x: TILE*8.8, y: TILE*6.2, char:'L', alive:true},
+  {x: TILE*5.8, y: TILE*8.2, char:'L', alive:true},
+  {x: TILE*3.6, y: TILE*6.2, char:'O', alive:true},
+  {x: TILE*9.2, y: TILE*4.2, char:'!', alive:true}
 ];
+
+// Message wall content (starts empty)
+let panelText = "";
 
 // Input
 const keys = {};
@@ -90,7 +108,7 @@ window.addEventListener('keyup', e=>{ keys[e.key.toLowerCase()] = false; });
 
 // Shooting
 let lastShot = 0;
-const fireRate = 0.25; // s
+const fireRate = 0.22; // s
 let score = 0;
 
 // Utility
@@ -99,36 +117,35 @@ function distance(ax,ay,bx,by){return Math.hypot(ax-bx,ay-by);}
 
 // Raycasting render
 function renderScene(dt){
+  // background
   ctx.fillStyle = '#111';
   ctx.fillRect(0,0,W,H);
 
   const half = H/2;
   // sky
-  const skyGrad = ctx.createLinearGradient(0,0,0,half);
-  skyGrad.addColorStop(0,'#6aa0ff');
-  skyGrad.addColorStop(1,'#2b5f9e');
-  ctx.fillStyle = skyGrad;
-  ctx.fillRect(0,0,W,half);
+  const sky = ctx.createLinearGradient(0,0,0,half);
+  sky.addColorStop(0,'#6aa0ff'); sky.addColorStop(1,'#2b5f9e');
+  ctx.fillStyle = sky; ctx.fillRect(0,0,W,half);
   // floor
-  const floorGrad = ctx.createLinearGradient(0,half,0,H);
-  floorGrad.addColorStop(0,'#444');
-  floorGrad.addColorStop(1,'#0b0b0b');
-  ctx.fillStyle = floorGrad;
-  ctx.fillRect(0,half,W,half);
+  const floor = ctx.createLinearGradient(0,half,0,H);
+  floor.addColorStop(0,'#444'); floor.addColorStop(1,'#0b0b0b');
+  ctx.fillStyle = floor; ctx.fillRect(0,half,W,half);
 
   const numRays = W;
   const rayStep = player.fov / numRays;
   const viewDist = (W/2) / Math.tan(player.fov/2);
 
+  // store wall hits for potential panel drawing
+  let panelHitColumns = [];
+
   for(let col=0; col<numRays; col++){
     const rayAngle = player.angle - player.fov/2 + col * rayStep;
-    const dx = Math.cos(rayAngle);
-    const dy = Math.sin(rayAngle);
+    const dx = Math.cos(rayAngle), dy = Math.sin(rayAngle);
 
     let distanceToWall = 0;
     let hit = false;
     let wallType = 0;
-    const maxDepth = 1200;
+    const maxDepth = 1400;
     while(!hit && distanceToWall < maxDepth){
       distanceToWall += 4;
       const testX = Math.floor((player.x + dx * distanceToWall) / TILE);
@@ -145,69 +162,117 @@ function renderScene(dt){
     const top = Math.floor(half - wallHeight/2);
     const bottom = Math.floor(half + wallHeight/2);
 
+    // color by wall type
     const shade = clamp(1 - correctedDist / 900, 0.12, 1);
     let color = '#888';
     if(wallType === 1) color = `rgba(${Math.floor(200*shade)},${Math.floor(200*shade)},${Math.floor(200*shade)},1)`;
     if(wallType === 2) color = `rgba(${Math.floor(200*shade)},${Math.floor(80*shade)},${Math.floor(80*shade)},1)`;
     if(wallType === 3) color = `rgba(${Math.floor(80*shade)},${Math.floor(120*shade)},${Math.floor(200*shade)},1)`;
+    if(wallType === 9) color = `rgba(${Math.floor(160*shade)},${Math.floor(120*shade)},${Math.floor(80*shade)},1)`; // panel wall
 
     ctx.fillStyle = color;
     ctx.fillRect(col, top, 1, Math.max(0, bottom-top));
 
+    // darken edges
     if(hit && distanceToWall < maxDepth){
       ctx.fillStyle = 'rgba(0,0,0,0.08)';
       ctx.fillRect(col, top, 1, Math.max(0, bottom-top));
     }
+
+    // record panel columns to draw text later
+    if(wallType === 9){
+      panelHitColumns.push({col, top, bottom, height: wallHeight});
+    }
   }
 
-  // Sprites (enemies)
-  const visibleSprites = [];
-  for(const e of enemies){
-    if(!e.alive) continue;
-    const dx = e.x - player.x;
-    const dy = e.y - player.y;
+  // Draw sprites (letters) sorted by distance
+  const visible = [];
+  for(const s of letters){
+    if(!s.alive) continue;
+    const dx = s.x - player.x, dy = s.y - player.y;
     const dist = Math.hypot(dx,dy);
     const angleTo = Math.atan2(dy,dx);
     let rel = angleTo - player.angle;
     while(rel > Math.PI) rel -= Math.PI*2;
     while(rel < -Math.PI) rel += Math.PI*2;
-    const inFov = Math.abs(rel) < player.fov/2 + 0.4;
+    const inFov = Math.abs(rel) < player.fov/2 + 0.6;
     if(inFov && dist > 10){
-      visibleSprites.push({e,dist,rel});
+      visible.push({s,dist,rel});
     }
   }
-  visibleSprites.sort((a,b)=>b.dist-a.dist);
+  visible.sort((a,b)=>b.dist-a.dist);
 
-  for(const s of visibleSprites){
-    const dist = s.dist;
-    const rel = s.rel;
+  for(const v of visible){
+    const s = v.s;
+    const dist = v.dist;
+    const rel = v.rel;
     const spriteScreenX = Math.tan(rel) * viewDist + W/2;
     const spriteHeight = (TILE * viewDist) / dist;
     const spriteWidth = spriteHeight * 0.8;
     const top = H/2 - spriteHeight/2;
     const left = spriteScreenX - spriteWidth/2;
     const shade = clamp(1 - dist/900, 0.12, 1);
-    ctx.fillStyle = `rgba(${Math.floor(220*shade)},${Math.floor(60*shade)},${Math.floor(60*shade)},1)`;
+
+    // draw letter rectangle
+    ctx.fillStyle = `rgba(${Math.floor(220*shade)},${Math.floor(120*shade)},${Math.floor(60*shade)},1)`;
     ctx.fillRect(left, top, spriteWidth, spriteHeight);
-    // health bar
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.fillRect(left, top-8, spriteWidth, 6);
-    ctx.fillStyle = 'rgba(0,200,0,0.9)';
-    ctx.fillRect(left, top-8, spriteWidth * (s.e.hp/30), 6);
+    // letter
+    ctx.fillStyle = '#111';
+    ctx.font = `${Math.max(12, spriteHeight*0.6)}px sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(s.char, spriteScreenX, H/2);
+    // outline
+    ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 2;
+    ctx.strokeText(s.char, spriteScreenX, H/2);
   }
 
-  // HUD crosshair
-  ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-  ctx.lineWidth = 2;
+  // Draw crosshair
+  ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(W/2 - 10, H/2);
-  ctx.lineTo(W/2 + 10, H/2);
-  ctx.moveTo(W/2, H/2 - 10);
-  ctx.lineTo(W/2, H/2 + 10);
+  ctx.moveTo(W/2 - 10, H/2); ctx.lineTo(W/2 + 10, H/2);
+  ctx.moveTo(W/2, H/2 - 10); ctx.lineTo(W/2, H/2 + 10);
   ctx.stroke();
+
+  // Draw panel text if player faces panel (we use panelHitColumns to decide)
+  if(panelHitColumns.length > 0){
+    // compute bounding box of panel on screen
+    const leftCol = panelHitColumns[0].col;
+    const rightCol = panelHitColumns[panelHitColumns.length-1].col;
+    const top = panelHitColumns[0].top;
+    const bottom = panelHitColumns[0].bottom;
+    const width = rightCol - leftCol;
+    const height = bottom - top;
+
+    // draw plaque background with slight perspective shading
+    ctx.fillStyle = 'rgba(20,20,20,0.9)';
+    ctx.fillRect(leftCol, top, width, height);
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.strokeRect(leftCol, top, width, height);
+
+    // draw the panel text centered
+    ctx.fillStyle = '#fffbf0';
+    const padding = 8;
+    const maxTextWidth = Math.max(40, width - padding*2);
+    // choose font size to fit
+    let fontSize = Math.floor(height * 0.18);
+    fontSize = Math.max(12, Math.min(fontSize, 48));
+    ctx.font = `bold ${fontSize}px monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+    // wrap text if too long
+    const words = panelText.split('');
+    // simple approach: draw the whole string scaled to fit width
+    let display = panelText || "(vide)";
+    // shrink font if too wide
+    while(ctx.measureText(display).width > maxTextWidth && fontSize > 10){
+      fontSize -= 2;
+      ctx.font = `bold ${fontSize}px monospace`;
+    }
+    ctx.fillText(display, leftCol + width/2, top + height/2);
+  }
 }
 
-// Update player and game logic
+// Update logic
 let lastTime = performance.now();
 let fpsCounter = {last: performance.now(), frames:0, fps:0};
 function gameLoop(now){
@@ -225,7 +290,6 @@ function gameLoop(now){
   if(keys['arrowleft']) turn -= 1;
   if(keys['arrowright']) turn += 1;
 
-  // movement
   const moveStep = player.speed * dt;
   const rotStep = player.rotSpeed * dt;
   player.angle += turn * rotStep;
@@ -233,10 +297,9 @@ function gameLoop(now){
   const ny = player.y + Math.sin(player.angle) * move * moveStep + Math.sin(player.angle + Math.PI/2) * strafe * moveStep;
 
   function isWalkable(x,y){
-    const mx = Math.floor(x / TILE);
-    const my = Math.floor(y / TILE);
+    const mx = Math.floor(x / TILE), my = Math.floor(y / TILE);
     if(mx < 0 || mx >= MAP_W || my < 0 || my >= MAP_H) return false;
-    return map[my][mx] === 0;
+    return map[my][mx] === 0 || map[my][mx] === 9; // allow walking near panel
   }
   if(isWalkable(nx, player.y)) player.x = nx;
   if(isWalkable(player.x, ny)) player.y = ny;
@@ -244,40 +307,32 @@ function gameLoop(now){
   // shooting
   if((keys[' '] || keys['space']) && (now/1000 - lastShot) > fireRate){
     lastShot = now/1000;
+    // find nearest letter in small cone
     let best = null;
-    for(const e of enemies){
-      if(!e.alive) continue;
-      const ang = Math.atan2(e.y - player.y, e.x - player.x);
+    for(const s of letters){
+      if(!s.alive) continue;
+      const ang = Math.atan2(s.y - player.y, s.x - player.x);
       let rel = ang - player.angle; while(rel > Math.PI) rel -= Math.PI*2; while(rel < -Math.PI) rel += Math.PI*2;
-      const dist = distance(player.x,player.y,e.x,e.y);
+      const dist = distance(player.x,player.y,s.x,s.y);
       if(Math.abs(rel) < 0.12 && dist < 900){
-        if(!best || dist < best.dist) best = {e,dist};
+        if(!best || dist < best.dist) best = {s,dist};
       }
     }
     if(best){
-      best.e.hp -= 15;
-      if(best.e.hp <= 0){ best.e.alive = false; score += 100; }
+      // collect letter
+      best.s.alive = false;
+      panelText += best.s.char;
+      score += 50;
+      // small visual feedback: flash
+      flashScreen();
+    } else {
+      // optional: ricochet sound or effect (visual)
+      // small muzzle flash
+      flashScreen(80);
     }
   }
 
-  // enemies AI
-  for(const e of enemies){
-    if(!e.alive) continue;
-    const dx = player.x - e.x;
-    const dy = player.y - e.y;
-    const dist = Math.hypot(dx,dy);
-    if(dist > 20){
-      const nx = e.x + (dx/dist) * 40 * dt;
-      const ny = e.y + (dy/dist) * 40 * dt;
-      const mx = Math.floor(nx / TILE);
-      const my = Math.floor(ny / TILE);
-      if(map[my][mx] === 0){ e.x = nx; e.y = ny; }
-    }
-    if(dist < 40){
-      player.hp -= 20 * dt;
-      player.hp = clamp(player.hp, 0, 100);
-    }
-  }
+  // simple enemy damage if too close to letters? none. But we can reduce hp slowly if player stands on non-walkable? skip.
 
   // update UI
   document.getElementById('score').textContent = score;
@@ -290,29 +345,46 @@ function gameLoop(now){
   if(now - fpsCounter.last > 500){
     fpsCounter.fps = Math.round((fpsCounter.frames*1000)/(now - fpsCounter.last));
     fpsCounter.last = now; fpsCounter.frames = 0;
-    document.getElementById('fps').textContent = fpsCounter.fps;
+    const dbg = document.getElementById('dbgFps'); if(dbg) dbg.textContent = fpsCounter.fps;
+    const dbgE = document.getElementById('dbgEnemies'); if(dbgE) dbgE.textContent = letters.filter(l=>l.alive).length;
   }
 
-  if(player.hp <= 0){
-    resetGame();
-  }
+  if(player.hp <= 0){ resetGame(); }
 
   requestAnimationFrame(gameLoop);
 }
 
-function resetGame(){
-  player.x = TILE*2.5; player.y = TILE*2.5; player.angle = 0; player.hp = 100; score = 0;
-  enemies = [
-    {x: TILE*6.5, y: TILE*4.5, hp: 30, alive:true},
-    {x: TILE*9.2, y: TILE*8.2, hp: 30, alive:true},
-    {x: TILE*4.2, y: TILE*8.8, hp: 30, alive:true}
-  ];
+// small screen flash for feedback
+function flashScreen(ms=160){
+  const prev = canvas.style.boxShadow;
+  canvas.style.boxShadow = '0 0 0 2000px rgba(255,200,80,0.06) inset';
+  setTimeout(()=>{ canvas.style.boxShadow = prev; }, ms);
 }
 
+function resetGame(){
+  player.x = TILE*2.5; player.y = TILE*2.5; player.angle = 0; player.hp = 100; score = 0; panelText = "";
+  letters = [
+    {x: TILE*5.2, y: TILE*3.5, char:'H', alive:true},
+    {x: TILE*7.6, y: TILE*2.8, char:'E', alive:true},
+    {x: TILE*8.8, y: TILE*6.2, char:'L', alive:true},
+    {x: TILE*5.8, y: TILE*8.2, char:'L', alive:true},
+    {x: TILE*3.6, y: TILE*6.2, char:'O', alive:true},
+    {x: TILE*9.2, y: TILE*4.2, char:'!', alive:true}
+  ];
+  document.getElementById('score').textContent = score;
+  document.getElementById('hp').textContent = Math.floor(player.hp);
+}
+
+// UI buttons
+document.getElementById('resetBtn').addEventListener('click', resetGame);
+document.getElementById('clearBtn').addEventListener('click', ()=>{ panelText = ""; flashScreen(200); });
+
+// quick reset key
 window.addEventListener('keydown', e=>{ if(e.key.toLowerCase()==='r') resetGame(); });
 
-// start
+// start loop
 requestAnimationFrame(gameLoop);
+
 </script>
 </body>
 </html>
