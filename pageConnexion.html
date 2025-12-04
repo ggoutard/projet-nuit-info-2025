@@ -1,1 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ubuntwo — Ouverture de session</title>
+  <style>
+    :root {
+      --bg: #fdfdfd;
+      --panel: #2a2d32; /* panneau noir */
+      --accent: #000000; /* accent noir */
+      --text: #ffffff;   /* texte blanc */
+      --muted: #cccccc;  /* gris clair pour labels */
+      --border: #333333;
+      --success: #2e8b57;
+      --error: #d9534f;
+      --focus: #000000;
+    }
 
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Ubuntu", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #1f1f24;
+    }
+
+    .login {
+      width: 100%;
+      max-width: 360px;
+      background: var(--panel);
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .header h1 {
+      font-size: 20px;
+      color: var(--text);
+      margin: 0;
+    }
+    .header p {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 4px 0 0;
+    }
+
+    .avatar {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin: 0 auto 16px;
+    }
+
+    label {
+      font-size: 13px;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+      margin-bottom: 14px;
+      background: #111111;
+      color: var(--text);
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--focus);
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      background: var(--accent);
+      color: var(--text);
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #222222;
+    }
+
+    .status {
+      margin-top: 12px;
+      font-size: 13px;
+      text-align: center;
+    }
+    .status.ok { color: var(--success); }
+    .status.err { color: var(--error); }
+  </style>
+</head>
+<body>
+  <div class="login">
+    <div class="header">
+      <h1>Ubuntwo GNU/Linux</h1>
+      <p>Session locale</p>
+    </div>
+
+    <div class="avatar">N</div>
+
+    <form id="loginForm">
+      <label for="username">Nom d’utilisateur</label>
+      <input id="username" type="text" value="Nuit de l'info" readonly />
+
+      <button type="submit" class="btn">Se connecter</button>
+      <div class="status" id="status"></div>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('loginForm');
+    const statusEl = document.getElementById('status');
+    const DEMO_USERS = { "Nuit de l'info": "password" };
+
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const username = form.username.value.trim();
+        statusEl.className = "status ok";
+        statusEl.textContent = "Connexion réussie. Bienvenue " + username + " !";
+    });
+  </script>
+</body>
+</html>
