@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <img src="image.png" alt="Wallpaper" style="position:fixed; inset:0; margin-top:0%; width:100%; height:130%;"/>
   <!-- Top bar -->
   <div class="topbar">
     <div class="top-left">
@@ -20,7 +21,7 @@
       <span class="chip">🔈 65%</span>
       <span class="chip">📶</span>
       <span class="chip">🔋 82%</span>
-      <span class="chip">Paramètres</span>
+      <span class="chip">settings</span>
     </div>
   </div>
 
@@ -141,26 +142,37 @@
 
     <!-- Browser -->
     <div class="window hidden" id="win-browser" style="top:200px; left:420px; width:720px;">
-      <div class="titlebar">
-        <div class="win-title">Navigateur</div>
-        <div class="controls">
-          <div class="ctrl min" data-act="min">—</div>
-          <div class="ctrl max" data-act="max">□</div>
-          <div class="ctrl close" data-act="close">×</div>
-        </div>
+  <div class="titlebar">
+    <div class="win-title">Navigateur</div>
+    <div class="controls">
+      <div class="ctrl min" data-act="min" title="Minimiser">—</div>
+      <div class="ctrl max" data-act="max" title="Maximiser">□</div>
+      <div class="ctrl close" data-act="close" title="Fermer">×</div>
+    </div>
+  </div>
+
+  <div class="window-content" style="grid-template-columns:1fr">
+    <div class="content browser-content">
+      <div class="browser-bar">
+        <button class="tool" id="navBack" title="Retour">←</button>
+        <button class="tool" id="navFwd" title="Avancer">→</button>
+        <button class="tool" id="navReload" title="Recharger">⟳</button>
+        <button class="tool" id="browserStop" title="Stop">■</button>
+
+        <input id="urlInput" class="url" placeholder="https://exemple.com" />
+        <button class="tool" id="goBtn">Go</button>
+
+        <div style="flex:0 0 12px"></div>
+        <button class="tool" id="blurToggle" title="Activer / Désactiver flou">Flou</button>
+        <div id="loader" aria-hidden="true" style="width:10px;height:10px;border-radius:50%;background:transparent;margin-left:8px;"></div>
       </div>
-      <div class="window-content" style="grid-template-columns:1fr">
-        <div class="content">
-          <div class="browser-bar">
-            <input id="urlInput" class="url" placeholder="https://exemple.com" />
-            <button class="tool" id="goBtn">Go</button>
-            <button class="tool" id="browserStop">Stop</button>
-          </div>
-          <iframe id="browserFrame" class="frame" sandbox="allow-scripts allow-forms allow-same-origin"></iframe>
-        </div>
+
+      <div class="iframe-wrap">
+        <iframe id="browserFrame" class="frame" sandbox="allow-scripts allow-forms allow-same-origin"></iframe>
       </div>
     </div>
   </div>
+</div>
   <script src="script.js"></script>
 </body>
 </html>
