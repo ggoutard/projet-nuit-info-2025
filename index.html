@@ -1,44 +1,147 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Indépendance Numérique - Accueil</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #1b1b1b;
-            color: #fff;
-            text-align: center;
-        }
-        #hero {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            padding: 0 20px;
-        }
-        #hero h1 {
-            font-size: 3em;
-            margin-bottom: 20px;
-        }
-        #hero button {
-            padding: 15px 30px;
-            font-size: 1.2em;
-            cursor: pointer;
-            border: none;
-            background-color: #ff3b3f;
-            color: white;
-            border-radius: 8px;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simulation de démarrage — Linux style</title>
+  <style>
+    /* Styles généraux */
+    html,body{height:100%;margin:0;background:#000;color:#fff;font-family: "SFMono-Regular",Consolas,Monaco,monospace}
+    .screen{
+      height:100%;display:flex;align-items:flex-start;justify-content:flex-start;padding:28px 36px;box-sizing:border-box;overflow:hidden
+    }
+
+    /* Zone du terminal */
+    .terminal{
+      max-width:1200px;width:100%;border-radius:6px;padding:12px 18px;box-sizing:border-box;background:rgba(0,0,0,0.15);backdrop-filter:blur(2px)
+    }
+
+    pre{margin:0;white-space:pre-wrap;word-break:break-word;font-size:16px;line-height:1.4}
+
+    .line{color:#ddd;opacity:0}
+    .cursor{display:inline-block;width:10px;height:18px;background:#fff;margin-left:6px;vertical-align:middle;animation:blink .9s steps(2) infinite}
+    @keyframes blink{50%{opacity:0}}
+
+    .timestamp{color:#8fbcd4;margin-right:10px}
+
+    /* Message clignotant */
+    .continue-message {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #0f0;
+      animation: blinkText 1s infinite;
+    }
+    @keyframes blinkText {
+      50% { opacity: 0; }
+    }
+
+    /* Responsiveness */
+    @media (max-width:600px){.screen{padding:12px}.terminal{padding:8px}.cursor{width:8px;height:16px}}
+  </style>
 </head>
 <body>
-    <header id="hero">
-        <h1>La révolution numérique a déjà commencé</h1>
-        <button onclick="window.location.href='quetes.html'">Rejoins-nous</button>
-    </header>
+  <div class="screen">
+    <div class="terminal" role="region" aria-label="Écran de démarrage simulé">
+      <pre id="output" aria-live="polite"></pre>
+      <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+      <div id="continue" class="continue-message" style="display:none;">Appuyer sur entrée pour continuer</div>
+    </div>
+  </div>
+  <script>
+    const lines = [
+      '[OK] Initialisation du kernel Ubuntwo version ',
+      '[OK] Détection du matériel: CPU x8 — 3.20 GHz',
+      '[OK] Mémoire: 16 GiB détectés',
+      '[INFO] Montage des partitions: /, /home, /var',
+      '[OK] Système de fichiers vérifié',
+      '[OK] Chargement des modules: ext4, snd, i915',
+      '[INFO] Configuration réseau: dhcp... obtenu 192.168.1.42',
+      '[OK] Démarrage des services: sshd, systemd-logind, dbus',
+      '[WARN] Mise à jour automatique des géants du net désactivée',
+      '[INFO] Lancement du démon de confidentialité: enabled',
+      '>> Vérification des trackers GAFAM... 42 résultats trouvés',
+      '>> Bloquage des collecteurs: en cours',
+      '[OK] Cookies suspects supprimés',
+      '[INFO] Formation d\'un réseau local anti-snoop (tm)',
+      '[INFO] Message du sysadmin: "Arrêtez de confier votre vie aux GAFAM. Essayez Linux, ça respire mieux."',
+      '[DEBUG] Mode mascotte ajouté: Tux fait un high-five',
+      '[OK] Interface graphique prête (Xorg fallback)',
+      '[OK] Gestionnaire de paquets: apt, snap disabled — paix retrouvée',
+      '[INFO] Why does astronauts use Linux ? Because we can\'t open Windows in space. #JMR',
+      '[OK] Activation du pare-feu: ufw profile: home',
+      '[OK] Services utilisateurs prêtes: userd, cron, docker',
+      '[INFO] Démarrage de GNOME Shell — bienvenue !',
+      '[OK] Démarrage terminé. Bonne session sous Linux :)'
+    ];
+
+    const output = document.getElementById('output');
+    const bar = document.getElementById('bar');
+    const continueMsg = document.getElementById('continue');
+    let speed = 9;
+    let paused = false;
+
+    function typeLines(list){
+      return new Promise(async (resolve)=>{
+        let progress = 0;
+        for(let i=0;i<list.length;i++){
+          if(paused){
+            await new Promise(r=>{
+              const id = setInterval(()=>{ if(!paused){ clearInterval(id); r(); } }, 120);
+            });
+          }
+          const t = document.createElement('div');
+          t.className = 'line';
+          const timeStamp = new Date().toLocaleTimeString();
+          t.innerHTML = `<span class="timestamp">${timeStamp}</span>`;
+          output.appendChild(t);
+
+          const text = list[i];
+          const span = document.createElement('span');
+          t.appendChild(span);
+          const cursor = document.createElement('span');
+          cursor.className = 'cursor';
+          t.appendChild(cursor);
+
+          t.style.opacity = 1;
+
+          for(let c=0;c<text.length;c++){
+            span.textContent += text[c];
+            const variance = Math.floor(Math.random()*speed*2) - speed/2;
+            await new Promise(r => setTimeout(r, Math.max(6, speed + variance)));
+            progress += (1/(list.length*text.length))*100;
+            bar.style.width = Math.min(100, progress) + '%';
+          }
+          await new Promise(r=>setTimeout(r, 120 + Math.random()*200));
+          cursor.remove();
+          window.scrollTo(0, document.body.scrollHeight);
+        }
+        resolve();
+      });
+    }
+
+    async function start(){
+      output.innerHTML = '';
+      bar.style.width = '2%';
+      await typeLines(lines);
+      const final = document.createElement('div');
+      final.className = 'line';
+      final.style.opacity = 1;
+      final.innerHTML = `<span class="timestamp">${new Date().toLocaleTimeString()}</span> <span>systemd: session established. Enjoy your freedom.</span>`;
+      output.appendChild(final);
+      bar.style.width = '100%';
+
+      // Afficher le message clignotant
+      continueMsg.style.display = 'block';
+    }
+
+    start();
+
+    // Redirection sur Entrée
+    window.addEventListener('keydown', (e)=>{
+      if(e.code === 'Enter' && continueMsg.style.display === 'block'){
+        window.location.href = 'pageConnexion.html'; // <-- lien vers ton autre fichier
+      }
+    });
+  </script>
 </body>
 </html>
