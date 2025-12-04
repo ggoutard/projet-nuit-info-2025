@@ -484,24 +484,92 @@
 })();
 
   // Navigateur
-  const urlInput = document.getElementById('urlInput');
-  const goBtn = document.getElementById('goBtn');
-  const stopBtn = document.getElementById('browserStop');
+  // Injecte une page de base dans l'iframe si elle est vide
+(function setDefaultIframeContent() {
   const frame = document.getElementById('browserFrame');
+  if (!frame) return;
 
-  function normalizeURL(u){
-    if(!u) return '';
-    let url = u.trim();
-    if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
-    return url;
+  const defaultHtml = `
+    <!doctype html>
+    <html lang="fr">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>Accueil - Mini Navigateur</title>
+      <style>
+        :root{--bg:#0f1720;--card:#111827;--accent:#E95420;--text:#e6eef6}
+        body{margin:0;font-family:system-ui,Segoe UI,Roboto,Ubuntu,sans-serif;background:linear-gradient(180deg,var(--bg),#07101a);color:var(--text);display:flex;align-items:center;justify-content:center;height:100vh}
+        .card{width:min(920px,92%);background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.12));border-radius:12px;padding:28px;box-shadow:0 10px 30px rgba(0,0,0,.6);text-align:center}
+        h1{margin:0 0 8px;font-size:20px}
+        p{margin:0 0 18px;color:#bfc9d6}
+        .search{display:flex;gap:8px;justify-content:center}
+        .search input{flex:1;min-width:0;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:#0b1116;color:var(--text)}
+        .search button{padding:10px 14px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
+        .links{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+        .links a{color:#cfe8ff;text-decoration:none;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,0.02)}
+        footer{margin-top:18px;color:#8f9aa6;font-size:12px}
+      </style>
+    </head>
+    <body>
+      <div class="card" role="main">
+        <h1>Mini Navigateur</h1>
+        <p>Page d'accueil intégrée — test et démonstration</p>
+        <div class="search">
+          <input id="miniSearch" placeholder="Rechercher (simulé) ou coller une URL..." />
+          <button id="miniGo">Aller</button>
+        </div>
+        <div class="links">
+          <a href="https://example.com" target="_top">Exemple</a>
+          <a href="https://developer.mozilla.org" target="_top">MDN</a>
+          <a href="https://github.com" target="_top">GitHub</a>
+        </div>
+        <footer>Astuce : clique sur un lien pour charger la page dans le navigateur parent</footer>
+      </div>
+
+      <script>
+        // Si l'utilisateur clique sur "Aller", on envoie l'URL au parent pour charger l'iframe
+        document.getElementById('miniGo').addEventListener('click', () => {
+          const val = document.getElementById('miniSearch').value.trim();
+          if (!val) return;
+          // Envoi sécurisé au parent via postMessage
+          parent.postMessage({ type: 'miniBrowser:load', url: val }, '*');
+        });
+
+        // Permet aussi d'appuyer sur Entrée
+        document.getElementById('miniSearch').addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') document.getElementById('miniGo').click();
+        });
+      </script>
+    </body>
+    </html>
+  `;
+
+  // Utilise srcdoc si disponible
+  try {
+    if ('srcdoc' in frame) {
+      frame.srcdoc = defaultHtml;
+    } else {
+      // Fallback : écrire dans le document de l'iframe (doit être same-origin)
+      frame.src = 'about:blank';
+      frame.addEventListener('load', function writeFallback() {
+        try {
+          const doc = frame.contentDocument || frame.contentWindow.document;
+          doc.open();
+          doc.write(defaultHtml);
+          doc.close();
+        } catch (e) {
+          // cross-origin fallback : charger une page locale simple si possible
+          frame.src = 'about:blank';
+        }
+        frame.removeEventListener('load', writeFallback);
+      });
+    }
+  } catch (err) {
+    // En cas d'erreur, on laisse l'iframe vide
+    console.warn('Impossible d\'injecter le contenu par défaut dans l\'iframe', err);
   }
-  goBtn.addEventListener('click', ()=>{
-    const url = normalizeURL(urlInput.value);
-    frame.src = url;
-  });
-  stopBtn.addEventListener('click', ()=>{
-    frame.src = 'about:blank';
-  });
+})();
+
 
   
 
