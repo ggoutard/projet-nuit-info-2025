@@ -90,10 +90,41 @@ a:hover{text-decoration:underline}
 .menu span{color:var(--text-dim); cursor:default}
 .menu span.active{color:var(--text)}
 .top-center{justify-self:center; color:var(--text-dim); font-size:14px}
-.top-right{justify-self:end; display:flex; align-items:center; gap:10px}
-.top-right{
-  display:flex; align-items:center; gap:10px;
+/* Assure la même taille, alignement et jauge visuelle */
+.top-right .chip{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid var(--border, #00000040);
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.12));
+  color:var(--text, #e9eaec);
+  box-shadow:0 6px 16px rgba(0,0,0,0.45);
+  backdrop-filter: blur(6px);
+  font-size:12px;
+  font-weight:700;
+  min-height:28px;
+  line-height:1;
+  transition: transform .18s, box-shadow .18s, filter .18s;
 }
+
+/* Variante réseau : même dimensions, couleur adaptée */
+.top-right .chip.network{
+  --accent: #66d38b;
+  --accent-2:#2e7d32;
+  border-color: rgba(46,125,50,0.18);
+  background: linear-gradient(180deg, rgba(102,211,139,0.08), rgba(0,0,0,0.08));
+  color:var(--text);
+}
+
+/* Hover / focus */
+.top-right .chip:hover{ transform:translateY(-2px); filter:brightness(1.06) }
+.top-right .chip:focus{ outline:2px solid var(--accent, #66d38b); outline-offset:2px }
+
+/* Si tu veux forcer largeur identique */
+.top-right .chip.fixed-width{ min-width:86px; justify-content:center }
+
 
 /* Chip de statut — pill glassmorphism */
 .chip{
@@ -190,12 +221,83 @@ a:hover{text-decoration:underline}
    --------------- */
 .desktop{position:fixed; inset:56px 0 0 0; padding:18px 18px 18px 110px}
 
-.window{
-  position:absolute; top:120px; left:160px; width:760px; min-width:420px; min-height:280px;
-  background:var(--win); border:1px solid var(--border); border-radius:var(--radius);
-  box-shadow:var(--elev-2); overflow:hidden; resize:both;
+/* 1) Desktop : occupe l'espace sous la topbar jusqu'en bas */
+.desktop {
+  position:fixed;
+  top:56px;      /* hauteur de la topbar */
+  left:0;
+  right:0;
+  bottom:0;      /* important : descend jusqu'en bas */
+  padding:18px 18px 18px 110px;
+  overflow:auto; /* permet de scroller si beaucoup de fenêtres */
 }
-.window.active{box-shadow:var(--elev-3)}
+
+/* 2) Wrapper des fenêtres : zone pleine hauteur */
+.windows-area {
+  position:relative;
+  min-height:100%;
+  width:100%;
+  box-sizing:border-box;
+}
+
+/* 3) Fenêtre : autoriser hauteur explicite et comportement flex */
+.window {
+  position:absolute;
+  top:120px;
+  left:160px;
+  width:760px;
+  min-width:420px;
+  min-height:280px;
+  max-height: calc(100vh - 160px); /* empêche de dépasser l'écran */
+  display:flex;
+  flex-direction:column; /* pour que .titlebar + .window-content s'empilent */
+  background:var(--win);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--elev-2);
+  overflow:visible; /* le scroll se gère dans .window-content */
+}
+
+/* 4) Window-content : occupe l'espace restant et scroll si nécessaire */
+.window-content {
+  display:grid;
+  grid-template-columns: 240px 1fr;
+  min-height:0;            /* essentiel pour que flex calcule correctement */
+  flex:1 1 auto;           /* prend la hauteur restante sous la titlebar */
+  overflow:auto;           /* scroll interne si contenu trop grand */
+  padding:0;               /* si tu veux garder padding, adapte */
+}
+
+/* 5) Si tu utilises window-content en une colonne (ex: terminal), forcer layout vertical */
+.window-content.single-column {
+  grid-template-columns: 1fr;
+}
+
+/* 6) Content interne : s'étire et scroll si besoin */
+.content {
+  display:flex;
+  flex-direction:column;
+  min-height:0;    /* important pour que overflow fonctionne dans flex */
+  overflow:auto;
+  padding:14px;
+}
+
+/* 7) Maximisation propre (déjà proposé) */
+.window[data-max="1"] {
+  left: 20px !important;
+  top: 64px !important;
+  width: calc(100% - 40px) !important;
+  height: calc(100% - 140px) !important;
+  border-radius: 10px !important;
+  position: fixed !important; /* fixe au viewport pour éviter décalages */
+  z-index: 9999 !important;
+}
+.window[data-max="1"] .window-content,
+.window[data-max="1"] .content {
+  height: calc(100% - 48px);
+  min-height: 0;
+}
+
 .titlebar{
   height:44px; background:linear-gradient(to bottom,#474c54,var(--win-header));
   display:grid; grid-template-columns: 1fr auto; align-items:center; padding:0 10px;
@@ -224,7 +326,6 @@ button,
 .ctrl{
   border:none;
   border-radius:10px;
-  padding:10px 14px;
   font-size:14px;
   font-weight:600;
   color:var(--text);
@@ -233,6 +334,9 @@ button,
   cursor:pointer;
   transition:transform .22s, box-shadow .22s, filter .22s, background .22s;
 }
+
+
+
 
 button:hover,
 .btn:hover,
@@ -358,7 +462,6 @@ textarea.note{
   .dock{left:10px; width:68px}
   .grid{grid-template-columns:repeat(2,1fr)}
 }
-
 @media (prefers-reduced-motion:reduce){
   *{transition:none !important; animation:none !important}
 }
