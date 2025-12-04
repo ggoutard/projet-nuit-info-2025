@@ -140,6 +140,11 @@
       const username = form.username.value.trim();
         statusEl.className = "status ok";
         statusEl.textContent = "Connexion réussie. Bienvenue " + username + " !";
+
+              // Redirection vers os_ubuntwo/index.html après un court délai
+      setTimeout(() => {
+        window.location.href = "os_ubuntwo/index.html";
+      }, 1000);
     });
   </script>
 </body>
