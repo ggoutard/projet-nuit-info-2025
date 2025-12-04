@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indépendance Numérique - Quêtes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+        main {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .theme {
+            margin: 40px 0;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .theme h2 {
+            margin-top: 0;
+        }
+        .quest {
+            margin: 20px 0;
+            padding: 15px;
+            border-left: 5px solid #ff3b3f;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .quest h3 {
+            margin-top: 0;
+        }
+        .step {
+            margin: 5px 0;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress {
+            height: 20px;
+            width: 0%;
+            background-color: #ff3b3f;
+            text-align: center;
+            color: white;
+            line-height: 20px;
+        }
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #1b1b1b;
+            color: #fff;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <!-- Thème Réemploi / Reconditionnement -->
+        <section class="theme">
+            <h2>Réemploi / Reconditionnement</h2>
+            <div class="quest">
+                <h3>Installer Linux sur mon PC</h3>
+                <div class="step"><input type="checkbox" onchange="updateProgress(this)"> 1) Faire une sauvegarde</div>
+                <div class="step"><input type="checkbox" onchange="updateProgress(this)"> 2) Télécharger l'ISO</div>
+                <div class="step"><input type="checkbox" onchange="updateProgress(this)"> 3) Créer une clé USB bootable</div>
+                <div class="step"><input type="checkbox" onchange="updateProgress(this)"> 4) Installer Linux</div>
+                <div class="progress-bar">
+                    <div class="progress">0%</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Thème Sobriété numérique -->
+        <section class="theme">
+            <h2>Sobriété numérique</h2>
+            <div class="quest">
+                <h3>Réduire ma consommation d’énergie</h3>
+                <div class="step"><input type="checkbox" onchange="updateProgress(this)"> 1) Éteindre les appareils inutilisés</div>
+                <div class="step"><input type="checkbox" onchange="updateProgress(this)"> 2) Utiliser des logiciels légers</div>
+                <div class="progress-bar">
+                    <div class="progress">0%</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        &copy; 2025 Indépendance Numérique
+    </footer>
+
+    <script>
+        function updateProgress(checkbox) {
+            const quest = checkbox.closest('.quest');
+            const steps = quest.querySelectorAll('.step input');
+            const progressBar = quest.querySelector('.progress');
+            let completed = 0;
+            steps.forEach(step => { if(step.checked) completed++; });
+            const percent = Math.round((completed / steps.length) * 100);
+            progressBar.style.width = percent + '%';
+            progressBar.textContent = percent + '%';
+        }
+    </script>
+</body>
+</html>
