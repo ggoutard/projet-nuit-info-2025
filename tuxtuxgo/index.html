@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tux Tux Go — Le moteur de recherche qui glisse</title>
+  <link rel="stylesheet" href="style.css" />
+  <meta name="description" content="Tux Tux Go — Parodie de DuckDuckGo. Recherchez en glissant sur la toile !" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html">
+      <div class="logo" aria-hidden="true">🐧</div>
+      <div class="brand-text">
+        <span class="brand-name">Tux Tux Go</span>
+        <span class="brand-tagline">Le moteur de recherche qui glisse</span>
+      </div>
+    </a>
+    <nav class="nav">
+      <a href="#about">À propos</a>
+      <a href="#privacy">Confidentialité</a>
+      <a href="#themes">Thèmes</a>
+    </nav>
+  </header>
+
+  <main class="home">
+    <section class="hero">
+      <!-- Nouveau titre au-dessus de la barre -->
+      <h1 class="search-title">Tux Tux Go</h1>
+
+      <p>Un moteur de recherche qui respecte votre plumage et vos données.</p>
+      <form id="search-form" action="results.html">
+        <input
+          type="text"
+          name="q"
+          id="q"
+          class="search-input"
+          placeholder="Tapez votre recherche…"
+          autocomplete="off"
+          aria-label="Rechercher"
+          required
+        />
+        <button class="search-btn" type="submit">Tux Tux Go !</button>
+      </form>
+      <div class="quick-suggestions" aria-label="Suggestions">
+        <button data-suggestion="Linux">Linux</button>
+        <button data-suggestion="Manchots vs Pingouins">Manchots vs Pingouins</button>
+        <button data-suggestion="Comment glisser plus vite">Comment glisser plus vite</button>
+      </div>
+    </section>
+
+    <section id="about" class="info">
+      <h2>À propos</h2>
+      <p>Tux Tux Go est une parodie de moteur de recherche. Les résultats sont fictifs, mais le respect de votre vie privée reste sérieux (dans l’esprit).</p>
+    </section>
+
+    <section id="privacy" class="info">
+      <h2>Confidentialité</h2>
+      <p>Pas de suivi, pas de cookies intrusifs, pas de bec dans vos données. Juste du froid, du fun, et des résultats imaginaires.</p>
+    </section>
+
+    <section id="themes" class="info">
+      <h2>Thèmes</h2>
+      <p>Essayez le mode Nuit Polaire pour des recherches en ambiance banquise.</p>
+      <button id="toggle-theme">Activer le mode Nuit Polaire</button>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <small>© 2025 Tux Tux Go — Une parodie affectueusement givrée.</small>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

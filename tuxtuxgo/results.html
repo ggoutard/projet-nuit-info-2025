@@ -1,0 +1,55 @@
+ 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Résultats — Tux Tux Go</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html">
+      <div class="logo" aria-hidden="true">🐧</div>
+      <div class="brand-text">
+        <span class="brand-name">Tux Tux Go</span>
+        <span class="brand-tagline">Le moteur de recherche qui glisse</span>
+      </div>
+    </a>
+    <form id="search-form" class="header-search" action="results.html">
+      <input type="text" name="q" id="q" class="search-input" placeholder="Rechercher…" required />
+      <button class="search-btn" type="submit">Rechercher</button>
+    </form>
+  </header>
+
+  <main class="results">
+    <div class="meta">
+      <p id="results-count">Environ 42 résultats (en 0,007 s) — pure magie polaire.</p>
+    </div>
+
+    <ol id="results-list" class="results-list" aria-live="polite"></ol>
+
+    <aside class="right-panel">
+      <section class="panel-card">
+        <h3>Carte info</h3>
+        <p id="info-card">Conseil: pour glisser plus vite, fléchissez les nageoires et pensez à l’aérodynamique du bec.</p>
+      </section>
+      <section class="panel-card">
+        <h3>Filtres</h3>
+        <ul class="filters">
+          <li><button data-filter="images">Images</button></li>
+          <li><button data-filter="vidéos">Vidéos</button></li>
+          <li><button data-filter="banquise">Banquise</button></li>
+          <li><button data-filter="code">Code</button></li>
+        </ul>
+      </section>
+    </aside>
+  </main>
+
+  <footer class="site-footer">
+    <small>© 2025 Tux Tux Go — Résultats non contractuels, mais rigolos.</small>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
