@@ -50,14 +50,22 @@ img,svg{display:block;max-width:100%}
 
 /* Fond d’écran: gradient profond */
 body::before{
-  content:"";
-  position:fixed; inset:0;
-  background:
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(8,10,12,0.55), rgba(8,10,12,0.55)),
+    var(--wallpaper-url),
     radial-gradient(1100px 780px at 80% 20%, #3b1a0f 0%, #26282d 45%, #1f2126 100%);
-  opacity:.9;
-  pointer-events:none;
-  z-index:-1;
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  background-position: center center, center center, 80% 20%;
+  background-size: cover, cover, cover;
+  opacity: 0.95;
+  pointer-events: none;
+  z-index: -1;
 }
+
+
 
 /* Liens et focus */
 a{color:var(--accent);text-decoration:none}
@@ -192,6 +200,7 @@ a:hover{text-decoration:underline}
 .chip.compact{ --pad-y:4px; --pad-x:8px; font-size:11px }
 
 
+
 /* -------------
    Dock latéral
    ------------- */
@@ -221,83 +230,12 @@ a:hover{text-decoration:underline}
    --------------- */
 .desktop{position:fixed; inset:56px 0 0 0; padding:18px 18px 18px 110px}
 
-/* 1) Desktop : occupe l'espace sous la topbar jusqu'en bas */
-.desktop {
-  position:fixed;
-  top:56px;      /* hauteur de la topbar */
-  left:0;
-  right:0;
-  bottom:0;      /* important : descend jusqu'en bas */
-  padding:18px 18px 18px 110px;
-  overflow:auto; /* permet de scroller si beaucoup de fenêtres */
+.window{
+  position:absolute; top:120px; left:160px; width:760px; min-width:420px; min-height:280px;
+  background:var(--win); border:1px solid var(--border); border-radius:var(--radius);
+  box-shadow:var(--elev-2); overflow:hidden; resize:both;
 }
-
-/* 2) Wrapper des fenêtres : zone pleine hauteur */
-.windows-area {
-  position:relative;
-  min-height:100%;
-  width:100%;
-  box-sizing:border-box;
-}
-
-/* 3) Fenêtre : autoriser hauteur explicite et comportement flex */
-.window {
-  position:absolute;
-  top:120px;
-  left:160px;
-  width:760px;
-  min-width:420px;
-  min-height:280px;
-  max-height: calc(100vh - 160px); /* empêche de dépasser l'écran */
-  display:flex;
-  flex-direction:column; /* pour que .titlebar + .window-content s'empilent */
-  background:var(--win);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  box-shadow:var(--elev-2);
-  overflow:visible; /* le scroll se gère dans .window-content */
-}
-
-/* 4) Window-content : occupe l'espace restant et scroll si nécessaire */
-.window-content {
-  display:grid;
-  grid-template-columns: 240px 1fr;
-  min-height:0;            /* essentiel pour que flex calcule correctement */
-  flex:1 1 auto;           /* prend la hauteur restante sous la titlebar */
-  overflow:auto;           /* scroll interne si contenu trop grand */
-  padding:0;               /* si tu veux garder padding, adapte */
-}
-
-/* 5) Si tu utilises window-content en une colonne (ex: terminal), forcer layout vertical */
-.window-content.single-column {
-  grid-template-columns: 1fr;
-}
-
-/* 6) Content interne : s'étire et scroll si besoin */
-.content {
-  display:flex;
-  flex-direction:column;
-  min-height:0;    /* important pour que overflow fonctionne dans flex */
-  overflow:auto;
-  padding:14px;
-}
-
-/* 7) Maximisation propre (déjà proposé) */
-.window[data-max="1"] {
-  left: 20px !important;
-  top: 64px !important;
-  width: calc(100% - 40px) !important;
-  height: calc(100% - 140px) !important;
-  border-radius: 10px !important;
-  position: fixed !important; /* fixe au viewport pour éviter décalages */
-  z-index: 9999 !important;
-}
-.window[data-max="1"] .window-content,
-.window[data-max="1"] .content {
-  height: calc(100% - 48px);
-  min-height: 0;
-}
-
+.window.active{box-shadow:var(--elev-3)}
 .titlebar{
   height:44px; background:linear-gradient(to bottom,#474c54,var(--win-header));
   display:grid; grid-template-columns: 1fr auto; align-items:center; padding:0 10px;
@@ -410,15 +348,81 @@ textarea.note{
 /* ----------
    Navigateur
    ---------- */
-.browser-bar{display:flex; gap:8px; margin-bottom:10px}
+/* Ajoute ces règles à ton style.css */
+.browser-content{
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+  padding:12px;
+}
+
+.browser-bar{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex:0 0 auto;
+  margin-bottom:10px;
+}
+
 .url{
-  flex:1; padding:8px; border-radius:8px; border:1px solid var(--border-strong);
-  background:#1c1f24; color:#eaecef
+  flex:1;
+  padding:8px;
+  border-radius:8px;
+  border:1px solid var(--border-strong);
+  background:#1c1f24;
+  color:var(--text);
 }
+
+.iframe-wrap{
+  flex:1 1 auto;
+  min-height:0;
+  position:relative;
+}
+
 .frame{
-  width:100%; height:320px; border:none; border-radius:8px; background:#fff;
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  border:none;
+  border-radius:8px;
+  background:#fff;
   box-shadow:var(--elev-1);
+  transition: filter .25s ease, transform .25s ease, opacity .18s;
+  transform-origin:center center;
 }
+
+/* Flou activé */
+.frame.blurred{
+  filter: blur(6px) brightness(.95);
+  transform: scale(1.02);
+}
+
+/* Indicateur de chargement simple */
+#loader{
+  transition: background-color .18s, transform .18s;
+}
+#loader.loading{
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  box-shadow: 0 6px 14px rgba(0,0,0,.45);
+  transform: scale(1.2);
+}
+
+/* Maximisation : utilise ton système existant data-max */
+.window[data-max="1"]{
+  left:20px !important;
+  top:64px !important;
+  width: calc(100% - 40px) !important;
+  height: calc(100% - 140px) !important;
+  position: fixed !important;
+  z-index: 9999 !important;
+}
+.window[data-max="1"] .frame{
+  border-radius:10px;
+}
+
+
+
 
 /* ------------
    Calculatrice
