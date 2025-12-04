@@ -5,38 +5,15 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Simulation de démarrage — Linux style</title>
   <style>
-    /* Styles généraux */
-    html,body{height:100%;margin:0;background:#000;color:#fff;font-family: "SFMono-Regular",Consolas,Monaco,monospace}
-    .screen{
-      height:100%;display:flex;align-items:flex-start;justify-content:flex-start;padding:28px 36px;box-sizing:border-box;overflow:hidden
-    }
-
-    /* Zone du terminal */
-    .terminal{
-      max-width:1200px;width:100%;border-radius:6px;padding:12px 18px;box-sizing:border-box;background:rgba(0,0,0,0.15);backdrop-filter:blur(2px)
-    }
-
+    html,body{height:100%;margin:0;background:#000;color:#fff;font-family:"SFMono-Regular",Consolas,Monaco,monospace}
+    .screen{height:100%;display:flex;align-items:flex-start;justify-content:flex-start;padding:28px 36px;box-sizing:border-box;overflow:hidden}
+    .terminal{max-width:1200px;width:100%;border-radius:6px;padding:12px 18px;box-sizing:border-box;background:rgba(0,0,0,0.15);backdrop-filter:blur(2px)}
     pre{margin:0;white-space:pre-wrap;word-break:break-word;font-size:16px;line-height:1.4}
-
-    .line{color:#ddd;opacity:0}
-    .cursor{display:inline-block;width:10px;height:18px;background:#fff;margin-left:6px;vertical-align:middle;animation:blink .9s steps(2) infinite}
-    @keyframes blink{50%{opacity:0}}
-
+    .line{color:#ddd;opacity:0;transition:opacity .3s}
     .timestamp{color:#8fbcd4;margin-right:10px}
-
-    /* Message clignotant */
-    .continue-message {
-      margin-top: 20px;
-      font-size: 18px;
-      color: #0f0;
-      animation: blinkText 1s infinite;
-    }
-    @keyframes blinkText {
-      50% { opacity: 0; }
-    }
-
-    /* Responsiveness */
-    @media (max-width:600px){.screen{padding:12px}.terminal{padding:8px}.cursor{width:8px;height:16px}}
+    .continue-message{margin-top:20px;font-size:18px;color:#0f0;animation:blinkText 1s infinite}
+    @keyframes blinkText{50%{opacity:0}}
+    @media (max-width:600px){.screen{padding:12px}.terminal{padding:8px}}
   </style>
 </head>
 <body>
@@ -77,69 +54,48 @@
     const output = document.getElementById('output');
     const bar = document.getElementById('bar');
     const continueMsg = document.getElementById('continue');
-    let speed = 9;
-    let paused = false;
 
-    function typeLines(list){
-      return new Promise(async (resolve)=>{
-        let progress = 0;
-        for(let i=0;i<list.length;i++){
-          if(paused){
-            await new Promise(r=>{
-              const id = setInterval(()=>{ if(!paused){ clearInterval(id); r(); } }, 120);
-            });
-          }
-          const t = document.createElement('div');
-          t.className = 'line';
-          const timeStamp = new Date().toLocaleTimeString();
-          t.innerHTML = `<span class="timestamp">${timeStamp}</span>`;
-          output.appendChild(t);
+    async function showLines(list){
+      let progress = 0;
+      for(let i=0;i<list.length;i++){
+        const t = document.createElement('div');
+        t.className = 'line';
+        const timeStamp = new Date().toLocaleTimeString();
+        t.innerHTML = `<span class="timestamp">${timeStamp}</span><span>${list[i]}</span>`;
+        output.appendChild(t);
+        // fade in
+        requestAnimationFrame(()=>{t.style.opacity=1;});
+        progress += (1/list.length)*100;
+        bar.style.width = Math.min(100, progress) + '%';
 
-          const text = list[i];
-          const span = document.createElement('span');
-          t.appendChild(span);
-          const cursor = document.createElement('span');
-          cursor.className = 'cursor';
-          t.appendChild(cursor);
-
-          t.style.opacity = 1;
-
-          for(let c=0;c<text.length;c++){
-            span.textContent += text[c];
-            const variance = Math.floor(Math.random()*speed*2) - speed/2;
-            await new Promise(r => setTimeout(r, Math.max(6, speed + variance)));
-            progress += (1/(list.length*text.length))*100;
-            bar.style.width = Math.min(100, progress) + '%';
-          }
-          await new Promise(r=>setTimeout(r, 120 + Math.random()*200));
-          cursor.remove();
-          window.scrollTo(0, document.body.scrollHeight);
+        // rythme : certaines lignes instantanées, parfois pause
+        if(i % 4 === 0){ // toutes les 4 lignes, pause d'1s
+          await new Promise(r=>setTimeout(r,1000));
+        } else {
+          await new Promise(r=>setTimeout(r,150)); // petite latence rapide
         }
-        resolve();
-      });
+        window.scrollTo(0, document.body.scrollHeight);
+      }
     }
 
     async function start(){
-      output.innerHTML = '';
-      bar.style.width = '2%';
-      await typeLines(lines);
-      const final = document.createElement('div');
-      final.className = 'line';
-      final.style.opacity = 1;
-      final.innerHTML = `<span class="timestamp">${new Date().toLocaleTimeString()}</span> <span>systemd: session established. Enjoy your freedom.</span>`;
+      output.innerHTML='';
+      bar.style.width='2%';
+      await showLines(lines);
+      const final=document.createElement('div');
+      final.className='line';
+      final.style.opacity=1;
+      final.innerHTML=`<span class="timestamp">${new Date().toLocaleTimeString()}</span> <span>systemd: session established. Enjoy your freedom.</span>`;
       output.appendChild(final);
-      bar.style.width = '100%';
-
-      // Afficher le message clignotant
-      continueMsg.style.display = 'block';
+      bar.style.width='100%';
+      continueMsg.style.display='block';
     }
 
     start();
 
-    // Redirection sur Entrée
-    window.addEventListener('keydown', (e)=>{
-      if(e.code === 'Enter' && continueMsg.style.display === 'block'){
-        window.location.href = 'pageConnexion.html'; // <-- lien vers ton autre fichier
+    window.addEventListener('keydown',(e)=>{
+      if(e.code==='Enter' && continueMsg.style.display==='block'){
+        window.location.href='pageConnexion.html';
       }
     });
   </script>
