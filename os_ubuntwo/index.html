@@ -265,8 +265,10 @@
     <div class="app" data-app="notes" title="Bloc-notes">📝<span class="dot"></span></div>
     <div class="app" data-app="calc" title="Calculatrice">🧮<span class="dot"></span></div>
     <div class="app" data-app="terminal" title="Terminal">⌨️<span class="dot"></span></div>
-    <div class="app" data-app="browser" title="Navigateur">🌐<span class="dot"></span></div>
+    <div class="app" data-app="nav" title="Navigateur">🌐<span class="dot"></span></div>
+    <div class="app" data-app="snake" title="Snake">🐍<span class="dot"></span></div>
     <div class="app" data-app="contact" title="Contact">📞<span class="dot"></span></div>
+
   </div>
 
   <!-- Desktop: gros boutons verre dépoli -->
@@ -415,43 +417,44 @@
     </div>
   </div>
 
-  <!-- Navigateur -->
-  <div class="window" id="win-browser" style="top:200px; left:420px; width:740px;">
-    <div class="titlebar">
-      <div class="win-title">Navigateur</div>
-      <div class="controls">
-        <div class="ctrl min" data-act="min">—</div>
-        <div class="ctrl max" data-act="max">□</div>
-        <div class="ctrl close" data-act="close">×</div>
-      </div>
-    </div>
-    <div class="window-content" style="grid-template-columns:1fr">
-      <div class="content">
-        <div class="browser-bar">
-          <input id="urlInput" class="url" placeholder="https://exemple.com" />
-          <button class="tool" id="goBtn">Go</button>
-          <button class="tool" id="browserStop">Stop</button>
-        </div>
-        <iframe id="browserFrame" class="frame" sandbox="allow-scripts allow-forms allow-same-origin"></iframe>
-      </div>
+
+<div class="window" id="win-nav" style="top:240px; left:480px; width:420px;">
+  <div class="titlebar">
+    <div class="win-title">Navigateur</div>
+    <div class="controls">
+      <div class="ctrl min" data-act="min">—</div>
+      <div class="ctrl max" data-act="max">□</div>
+      <div class="ctrl close" data-act="close">×</div>
     </div>
   </div>
 
-    <div class="window" id="win-browser" style="top:200px; left:420px; width:740px;">
-    <div class="titlebar">
-      <div class="win-title">Navigateur</div>
-      <div class="controls">
-        <div class="ctrl min" data-act="min">—</div>
-        <div class="ctrl max" data-act="max">□</div>
-        <div class="ctrl close" data-act="close">×</div>
-      </div>
-    </div>
-    <div class="window-content" style="grid-template-columns:1fr">
-      <div class="content">
-        <iframe id="browserFrame" class="frame" sandbox="allow-scripts allow-forms allow-same-origin"></iframe>
+  <!-- Barre d'URL ajoutée -->
+  <div class="nav-toolbar" style="display:flex; align-items:center; gap:8px; padding:8px; border-top:1px solid rgba(0,0,0,0.06); border-bottom:1px solid rgba(0,0,0,0.06); background:linear-gradient(#fafafa,#f5f5f5);">
+    <button id="nav-back" data-act="back" aria-label="Retour" style="min-width:36px; height:36px; border:1px solid #ddd; background:#fff; border-radius:6px; cursor:pointer;">◀</button>
+    <button id="nav-forward" data-act="forward" aria-label="Avancer" style="min-width:36px; height:36px; border:1px solid #ddd; background:#fff; border-radius:6px; cursor:pointer;">▶</button>
+    <input id="nav-url" type="text" placeholder="Entrer une URL ou une recherche" style="flex:1; height:36px; padding:6px 10px; border:1px solid #ccc; border-radius:8px; font-size:13px;" />
+    <button id="nav-go" data-act="go" aria-label="Aller" style="min-width:56px; height:36px; border:0; background:#0078d4; color:#fff; border-radius:8px; cursor:pointer;">Aller</button>
+    <button id="nav-reload" data-act="reload" aria-label="Recharger" style="min-width:36px; height:36px; border:1px solid #ddd; background:#fff; border-radius:6px; cursor:pointer;">⟳</button>
+  </div>
+
+  <div class="window-content" style="grid-template-columns:1fr; height: calc(100% - 96px);">
+    <div class="content" style="position:relative; padding:0; height:100%;">
+      <!-- Conteneur qui occupe tout l'espace restant (sans toolbar) -->
+      <div style="position:relative; width:100%; height:100%;">
+        <iframe
+          id="nav-iframe"
+          src="https://ggoutard.github.io/projet-nuit-info-2025/tuxtuxgo/index.html"
+          style="position:absolute; inset:0; width:100%; height:100%; border:0; display:block;"
+          frameborder="0"
+          scrolling="auto"
+          title="Tâches - iframe">
+        </iframe>
       </div>
     </div>
   </div>
+</div>
+
+  
 
 <div class="window" id="win-contact" style="top:240px; left:480px; width:420px;">
   <div class="titlebar">
@@ -477,6 +480,36 @@
     </div>
   </div>
 </div>
+</div>
+
+<div class="window" id="win-snake" style="top:240px; left:480px; width:420px;">
+  <div class="titlebar">
+    <div class="win-title">Snake</div>
+    <div class="controls">
+      <div class="ctrl min" data-act="min">—</div>
+      <div class="ctrl max" data-act="max">□</div>
+      <div class="ctrl close" data-act="close">×</div>
+    </div>
+  </div>
+
+<div class="window-content" style="grid-template-columns:1fr; height: calc(100% - 48px);">
+  <div class="content" style="position:relative; padding:0; height:100%;">
+    <!-- Conteneur qui occupe tout l'espace restant (sans toolbar) -->
+    <div style="position:relative; width:100%; height:100%;">
+      <iframe
+        src="https://ggoutard.github.io/projet-nuit-info-2025/snake/index.html"
+        style="position:absolute; inset:0; width:100%; height:100%; border:0; display:block;"
+        frameborder="0"
+        scrolling="auto"
+        title="Tâches - iframe">
+      </iframe>
+    </div>
+  </div>
+</div>
+
+
+
+
 
 <script>
   // Horloge
@@ -536,9 +569,11 @@
   });
 
   // Dock
-  const appMap = { files:'files', notes:'notes', calc:'calc', terminal:'terminal', browser:'browser',todo: 'todo'};
+  const appMap = { files:'files', notes:'notes', calc:'calc', terminal:'terminal', nav:'nav',todo: 'todo'};
   
   appMap['contact'] = 'contact';
+    appMap['snake'] = 'snake';
+
   
   document.querySelectorAll('.dock .app').forEach(app=>{
     app.addEventListener('click', ()=> openWin(appMap[app.dataset.app]));
@@ -660,14 +695,184 @@
     termOut.innerHTML = `<div>Bienvenue dans le terminal web. Tapez 'help'.</div>`; prompt();
   }
 
-  // Navigateur
-  const urlInput = document.getElementById('urlInput');
-  const goBtn = document.getElementById('goBtn');
-  const stopBtn = document.getElementById('browserStop');
-  const frame = document.getElementById('browserFrame');
-  function normalizeURL(u){ if(!u) return ''; let url = u.trim(); if(!/^https?:\/\//i.test(url)) url = 'https://' + url; return url; }
-  if(goBtn && frame){ goBtn.addEventListener('click', ()=>{ const url = normalizeURL(urlInput.value); frame.src = url; }); }
-  if(stopBtn && frame){ stopBtn.addEventListener('click', ()=>{ frame.src = 'about:blank'; }); }
+  // Sélection des éléments
+const iframe = document.getElementById('nav-iframe');
+const urlInput = document.getElementById('nav-url');
+const btnBack = document.getElementById('nav-back');
+const btnForward = document.getElementById('nav-forward');
+const btnGo = document.getElementById('nav-go');
+const btnReload = document.getElementById('nav-reload');
+
+// Historique simple côté parent (car on ne peut pas accéder à l'historique cross-origin)
+let historyStack = [];
+let historyIndex = -1;
+let lastTrackedUrl = iframe.src || 'about:blank';
+
+// Normalise l'entrée : si ressemble à URL on la retourne, sinon on fait une recherche Google
+function normalizeInputToUrl(input) {
+  input = (input || '').trim();
+  if (!input) return 'about:blank';
+  // Si commence par http(s) ou about: ou data:
+  if (/^(https?:|about:|data:)/i.test(input)) return input;
+  // Si contient un espace -> recherche
+  if (/\s/.test(input)) {
+    return 'https://www.google.com/search?q=' + encodeURIComponent(input);
+  }
+  // Si contient un point et pas d'espace -> probable URL sans protocole
+  if (/\./.test(input)) {
+    return (input.startsWith('//') ? window.location.protocol + input : (input.startsWith('http') ? input : 'https://' + input));
+  }
+  // Sinon recherche
+  return 'https://www.google.com/search?q=' + encodeURIComponent(input);
+}
+
+// Met à jour l'état des boutons (désactivés/activés)
+function updateNavButtons() {
+  btnBack.disabled = historyIndex <= 0;
+  btnForward.disabled = historyIndex >= historyStack.length - 1 || historyIndex === -1;
+  // style visuel simple pour disabled
+  [btnBack, btnForward].forEach(b => {
+    b.style.opacity = b.disabled ? '0.5' : '1';
+    b.style.cursor = b.disabled ? 'default' : 'pointer';
+  });
+}
+
+// Pousse une URL dans l'historique (évite doublons consécutifs)
+function pushHistory(url) {
+  if (!url) return;
+  // si on navigue après être revenu en arrière, tronquer la suite
+  if (historyIndex < historyStack.length - 1) {
+    historyStack = historyStack.slice(0, historyIndex + 1);
+  }
+  // éviter doublon immédiat
+  if (historyStack[historyStack.length - 1] !== url) {
+    historyStack.push(url);
+    historyIndex = historyStack.length - 1;
+  }
+  updateNavButtons();
+}
+
+// Navigue vers une URL (option pushHistory = true)
+function navigateTo(rawInput, push = true) {
+  const url = normalizeInputToUrl(rawInput);
+  lastTrackedUrl = url;
+  iframe.src = url;
+  urlInput.value = url;
+  if (push) pushHistory(url);
+}
+
+// Retour dans l'historique
+function goBack() {
+  if (historyIndex > 0) {
+    historyIndex -= 1;
+    const url = historyStack[historyIndex];
+    lastTrackedUrl = url;
+    iframe.src = url;
+    urlInput.value = url;
+    updateNavButtons();
+  }
+}
+
+// Avancer dans l'historique
+function goForward() {
+  if (historyIndex < historyStack.length - 1) {
+    historyIndex += 1;
+    const url = historyStack[historyIndex];
+    lastTrackedUrl = url;
+    iframe.src = url;
+    urlInput.value = url;
+    updateNavButtons();
+  }
+}
+
+// Recharger l'iframe (force reload)
+function reloadIframe() {
+  // méthode simple : réassigner src
+  iframe.src = iframe.src || lastTrackedUrl;
+}
+
+// Événements UI
+btnGo.addEventListener('click', () => navigateTo(urlInput.value, true));
+btnBack.addEventListener('click', goBack);
+btnForward.addEventListener('click', goForward);
+btnReload.addEventListener('click', reloadIframe);
+
+// Touche Entrée dans le champ URL
+urlInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    navigateTo(urlInput.value, true);
+  }
+});
+
+// Quand l'iframe charge, on tente de récupérer l'URL réelle (si même origine), sinon on affiche la dernière URL suivie
+iframe.addEventListener('load', () => {
+  try {
+    // Peut échouer en cross-origin
+    const realUrl = iframe.contentWindow.location.href;
+    if (realUrl && realUrl !== 'about:blank') {
+      lastTrackedUrl = realUrl;
+      urlInput.value = realUrl;
+      // si l'URL diffère de l'historique, on l'ajoute (utile si la page a redirigé)
+      if (historyStack[historyIndex] !== realUrl) {
+        pushHistory(realUrl);
+      }
+    } else {
+      urlInput.value = lastTrackedUrl;
+    }
+  } catch (err) {
+    // Cross-origin : on ne peut pas lire, on restaure la dernière URL connue
+    urlInput.value = lastTrackedUrl;
+  }
+  updateNavButtons();
+});
+
+// Initialisation : remplir l'historique avec la src initiale
+(function init() {
+  const initial = iframe.src || lastTrackedUrl || 'about:blank';
+  lastTrackedUrl = initial;
+  pushHistory(initial);
+  urlInput.value = initial;
+  updateNavButtons();
+})();
+
+// Hooks pour les contrôles de fenêtre (data-type="window")
+// Ces handlers émettent des CustomEvent sur document pour que ton code principal les capture
+document.querySelectorAll('[data-type="window"]').forEach(el => {
+  el.addEventListener('click', (ev) => {
+    const act = el.getAttribute('data-act');
+    if (!act) return;
+    // Émettre un événement personnalisé : 'window-control' avec detail { action: act }
+    document.dispatchEvent(new CustomEvent('window-control', { detail: { action: act, source: el } }));
+    // comportement par défaut minimal (tu peux surcharger en écoutant l'événement)
+    if (act === 'close') {
+      // exemple : masquer la fenêtre
+      const win = el.closest('.window');
+      if (win) win.style.display = 'none';
+    } else if (act === 'min') {
+      const win = el.closest('.window');
+      if (win) win.style.height = '40px';
+    } else if (act === 'max') {
+      const win = el.closest('.window');
+      if (win) {
+        win.style.top = '20px';
+        win.style.left = '20px';
+        win.style.width = 'calc(100% - 40px)';
+        win.style.height = 'calc(100% - 40px)';
+      }
+    }
+  });
+});
+
+// Exposer quelques fonctions utiles globalement si besoin
+window.simpleNav = {
+  navigateTo,
+  goBack,
+  goForward,
+  reloadIframe,
+  getHistory: () => ({ stack: historyStack.slice(), index: historyIndex }),
+};
+
 </script>
 </body>
 </html>
