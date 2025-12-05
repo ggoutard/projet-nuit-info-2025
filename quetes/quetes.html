@@ -27,7 +27,7 @@ body {
   font-family: 'Ubuntu', sans-serif;
   background: var(--bg);
   color: var(--text);
-  padding: 32px; /* padding global augmenté */
+  padding: 32px;
 }
 
 /* Utilities */
@@ -43,21 +43,22 @@ h1, h2 {
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 28px; /* un peu plus d’espace entre les cartes */
+  gap: 28px;
 }
 
-/* Card style */
-.card, #themeDetail, #questDetail, #themesPage {
+/* Cartes de thèmes avec hover */
+.card {
   border-radius: var(--radius);
-  padding: 24px; /* padding intérieur augmenté */
+  padding: 24px;
   background: linear-gradient(180deg, var(--surface), var(--surface-2));
   color: var(--text);
   box-shadow: 0 4px 12px rgba(0,0,0,0.4);
   border: none;
-  transition: transform 0.2s, box-shadow 0.2s;
   cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-.card:hover, #themeDetail:hover, #questDetail:hover, #themesPage:hover {
+
+.card:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(0,0,0,0.6);
 }
@@ -68,12 +69,12 @@ h1, h2 {
   color: var(--text-dim);
 }
 
-/* Buttons */
+/* Boutons uniquement pour actions */
 button {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 18px; /* padding augmenté */
+  padding: 12px 18px;
   border-radius: var(--radius-sm);
   background: var(--accent-orange);
   color: #fff;
@@ -102,7 +103,7 @@ button:active {
   width: 100%;
   justify-content: flex-start;
   background: linear-gradient(180deg, var(--surface), var(--surface-2));
-  padding: 14px 18px; /* padding augmenté */
+  padding: 14px 18px;
 }
 
 /* Steps list */
@@ -115,7 +116,7 @@ button:active {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 18px; /* padding augmenté */
+  padding: 14px 18px;
   margin-bottom: 12px;
   border-radius: var(--radius-sm);
   background: linear-gradient(180deg, var(--surface), var(--surface-2));
@@ -140,7 +141,7 @@ button:active {
 
 /* Progress bar */
 .progress {
-  height: 12px; /* légèrement plus épais */
+  height: 12px;
   background: #0f111b;
   border-radius: 999px;
   overflow: hidden;
@@ -174,17 +175,17 @@ p, ul { padding: 0; }
   </div>
 
   <!-- Page d’une quête -->
-<div id="questDetail" class="hidden">
-  <button onclick="showTheme()">⬅ Retour</button>
-  <h2 id="questTitle"></h2>
-  <p>Progression : <span id="questProgress">0%</span></p>
+  <div id="questDetail" class="hidden">
+    <button onclick="showTheme()">⬅ Retour</button>
+    <h2 id="questTitle"></h2>
+    <p>Progression : <span id="questProgress">0%</span></p>
 
-  <div class="progress">
-    <div class="progress-bar" id="progressBar"></div>
+    <div class="progress">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <ul id="stepsList"></ul>
   </div>
-
-  <ul id="stepsList"></ul>
-</div>
 
 <script>
 // --- DONNÉES ---
@@ -192,50 +193,50 @@ const data = {
   themes: [
     {
       name: "Découvrir et adopter Linux",
-description: "Apprendre à installer, utiliser et apprécier Linux comme système d'exploitation simple, libre et accessible, tout en découvrant ses avantages pour l'autonomie numérique.",
-quests: [
-  {
-    title: "Installer Linux pour la première fois",
-    steps: [
-      "Choisir une distribution adaptée (Ubuntu, Linux Mint, Fedora...)",
-      "Télécharger l'image ISO depuis le site officiel",
-      "Créer une clé USB bootable avec un outil comme Rufus ou Etcher",
-      "Démarrer l'ordinateur depuis la clé USB",
-      "Suivre l'assistant d'installation pas à pas"
-    ]
-  },
-  {
-    title: "Découvrir l'environnement de bureau",
-    steps: [
-      "Se familiariser avec le menu des applications",
-      "Tester les raccourcis clavier basiques (copier, coller, ouvrir un terminal)",
-      "Personnaliser le bureau (fond d’écran, thèmes, icônes)",
-      "Installer des logiciels via le gestionnaire d’applications",
-      "Explorer les paramètres système pour ajuster son expérience"
-    ]
-  },
-  {
-    title: "Installer des logiciels utiles",
-    steps: [
-      "Ouvrir le gestionnaire de paquets (ex: Ubuntu Software, Synaptic)",
-      "Chercher et installer un navigateur web (Firefox, Brave...)",
-      "Installer une suite bureautique libre (LibreOffice)",
-      "Ajouter un lecteur multimédia (VLC)",
-      "Découvrir la commande `sudo apt install` pour les plus curieux"
-    ]
-  },
-  {
-    title: "Prouver que Linux est simple à utiliser",
-    steps: [
-      "Tester la navigation web et constater la fluidité",
-      "Rédiger un document avec LibreOffice",
-      "Regarder une vidéo avec VLC",
-      "Mettre à jour le système en un clic",
-      "Partager son expérience avec un ami pour montrer la simplicité"
-    ]
-  }
-  ]
-  },
+      description: "Apprendre à installer, utiliser et apprécier Linux comme système d'exploitation simple, libre et accessible, tout en découvrant ses avantages pour l'autonomie numérique.",
+      quests: [
+        {
+          title: "Installer Linux pour la première fois",
+          steps: [
+            "Choisir une distribution adaptée (Ubuntu, Linux Mint, Fedora...)",
+            "Télécharger l'image ISO depuis le site officiel",
+            "Créer une clé USB bootable avec un outil comme Rufus ou Etcher",
+            "Démarrer l'ordinateur depuis la clé USB",
+            "Suivre l'assistant d'installation pas à pas"
+          ]
+        },
+        {
+          title: "Découvrir l'environnement de bureau",
+          steps: [
+            "Se familiariser avec le menu des applications",
+            "Tester les raccourcis clavier basiques (copier, coller, ouvrir un terminal)",
+            "Personnaliser le bureau (fond d’écran, thèmes, icônes)",
+            "Installer des logiciels via le gestionnaire d’applications",
+            "Explorer les paramètres système pour ajuster son expérience"
+          ]
+        },
+        {
+          title: "Installer des logiciels utiles",
+          steps: [
+            "Ouvrir le gestionnaire de paquets (ex: Ubuntu Software, Synaptic)",
+            "Chercher et installer un navigateur web (Firefox, Brave...)",
+            "Installer une suite bureautique libre (LibreOffice)",
+            "Ajouter un lecteur multimédia (VLC)",
+            "Découvrir la commande `sudo apt install` pour les plus curieux"
+          ]
+        },
+        {
+          title: "Prouver que Linux est simple à utiliser",
+          steps: [
+            "Tester la navigation web et constater la fluidité",
+            "Rédiger un document avec LibreOffice",
+            "Regarder une vidéo avec VLC",
+            "Mettre à jour le système en un clic",
+            "Partager son expérience avec un ami pour montrer la simplicité"
+          ]
+        }
+      ]
+    },
     {
       name: "Durabilité du matériel",
       quests: [
@@ -243,7 +244,7 @@ quests: [
       ]
     },
     {
-    name: "Sobriété numérique",
+      name: "Sobriété numérique",
       description:"Ensemble des démarches permettant de minimiser l'impact environnemental du numérique en réduisant la consommation d'énergie des objets technologiques et connectés qui nous entourent.",
       quests: [
         {
@@ -262,7 +263,8 @@ quests: [
             "Réfléchir à ses besoins réels avant d'acheter. La location pourrait-elle être une meilleure option ?",
             "Penser au reconditionné",
             "Privilégier les appareils avec un indice de réparabilité élevé",
-            "Vérifier la présence de labels environnementaux"]
+            "Vérifier la présence de labels environnementaux"
+          ]
         },
         {
           title: "Limiter l'utilisation des données",
@@ -275,8 +277,8 @@ quests: [
             "Débrancher sa box internet avant de partir en vacances"
           ]
         }
-    ]
-        }
+      ]
+    }
   ]
 };
 
