@@ -1,8 +1,8 @@
-# projet-nuit-info-2025
+# Projet Nuit de l'Info 2025
 
-Ce projet propose d'explorer un système d'exploitation.
+Ce projet propose d'explorer un système d'exploitation (Ubuntu-like) via un site web.
 
-Une fois la session ouverte, il est possible de lancer des activités en cliquant sur les icônes sur la gauche.
+Une fois la session ouverte, il est possible de lancer différents programmes et activités (explorateur de fichiers, bloc-notes, navigateur web, laser game, shoot them up, formulaire de contact) en cliquant sur les icônes sur la gauche.
 
 
 
