@@ -2,7 +2,7 @@
 
 Ce projet propose d'explorer un système d'exploitation (Ubuntu-like) via un site web.
 
-Une fois la session ouverte, il est possible de lancer différents programmes et activités (explorateur de fichiers, bloc-notes, navigateur web, laser game, shoot them up, formulaire de contact) en cliquant sur les icônes sur la gauche.
+Une fois la session ouverte, il est possible de lancer différents programmes et activités (explorateur de fichiers, bloc-notes, navigateur web, gestionnaire de missions pour sensibiliser à la résistance numérique, laser game, jeu shoot them up, formulaire de contact) en cliquant sur les icônes sur la gauche.
 
 
 
