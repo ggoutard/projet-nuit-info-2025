@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Explorateur de fichiers</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#1e1f22;
+      --panel:#2a2c31;
+      --panel-alt:#2f3136;
+      --accent:#4caf50;
+      --text:#e6e6e6;
+      --muted:#a9acb2;
+      --border:#3a3d43;
+      --hover:#373a40;
+      --sel:#3d5a40;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:var(--bg); color:var(--text);
+      font:22px/1.6 system-ui, -apple-system, Segoe UI, Roboto, "Ubuntu", sans-serif;
+    }
+    .app{display:grid; grid-template-columns:280px 1fr; height:100vh}
+    .sidebar{
+      background:var(--panel);
+      border-right:1px solid var(--border);
+      display:flex; flex-direction:column;
+    }
+    .sidebar .title{
+      padding:20px 16px; font-weight:600; letter-spacing:.2px;
+      border-bottom:1px solid var(--border); font-size:1.3em;
+    }
+    .sidebar .section{padding:14px 12px}
+    .sidebar .item{
+      display:flex; align-items:center; gap:12px;
+      padding:12px 14px; border-radius:8px; color:var(--text);
+      cursor:pointer; font-size:1.1em;
+    }
+    .sidebar .item:hover{background:var(--hover)}
+    .sidebar .item.active{background:var(--sel)}
+    .main{display:flex; flex-direction:column; min-width:0}
+    .toolbar{
+      background:var(--panel);
+      border-bottom:1px solid var(--border);
+      padding:12px; display:flex; align-items:center; gap:12px;
+    }
+    .btn{
+      background:var(--panel-alt); color:var(--text);
+      border:1px solid var(--border); border-radius:8px;
+      padding:10px 14px; cursor:pointer; font-size:1.1em;
+    }
+    .btn:hover{background:var(--hover)}
+    .breadcrumbs{
+      flex:1; display:flex; align-items:center; gap:10px;
+      padding:0 12px; color:var(--muted); overflow:auto;
+    }
+    .crumb{color:var(--text); cursor:pointer}
+    .crumb.sep{color:var(--muted)}
+    .search{
+      margin-left:auto; display:flex; align-items:center; gap:10px;
+      background:var(--panel-alt); border:1px solid var(--border);
+      border-radius:8px; padding:6px 12px; font-size:1.1em;
+    }
+    .search input{
+      background:transparent; border:none; outline:none; color:var(--text); width:220px; font-size:1em;
+    }
+    .content{display:flex; flex-direction:column; min-height:0}
+    .header-row{
+      display:grid; grid-template-columns:1fr 150px 180px; gap:12px;
+      padding:12px 16px; color:var(--muted); border-bottom:1px solid var(--border);
+      background:var(--panel);
+      position:sticky; top:0; z-index:2; font-size:1.1em;
+    }
+    .list{
+      overflow:auto; flex:1; background:var(--panel-alt);
+    }
+    .row{
+      display:grid; grid-template-columns:1fr 150px 180px; gap:12px;
+      padding:12px 16px; align-items:center; border-bottom:1px solid var(--border);
+      cursor:pointer; font-size:1.1em;
+    }
+    .row:hover{background:var(--hover)}
+    .row.selected{background:var(--sel)}
+    .name{
+      display:flex; align-items:center; gap:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .icon{
+      width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;
+      border-radius:6px; font-size:18px; background:#6a5acd33; color:#c6b8ff;
+    }
+    .icon.dir{background:#4caf5033; color:#9fe3ad}
+    .empty{padding:24px; color:var(--muted); font-size:1.2em}
+    .statusbar{
+      background:var(--panel); border-top:1px solid var(--border);
+      padding:10px 14px; color:var(--muted); display:flex; gap:16px; font-size:1.1em;
+    }
+    .row:focus{outline:2px solid var(--accent)}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="title">Raccourcis</div>
+      <div class="section" id="shortcuts"></div>
+    </aside>
+
+    <main class="main">
+      <div class="toolbar">
+        <button class="btn" id="btnBack" title="Retour">←</button>
+        <button class="btn" id="btnForward" title="Avancer">→</button>
+        <button class="btn" id="btnUp" title="Monter">↑</button>
+        <div class="breadcrumbs" id="breadcrumbs"></div>
+        <div class="search">
+          <span>🔎</span>
+          <input type="text" id="searchInput" placeholder="Rechercher…">
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="header-row">
+          <div>Nom</div>
+          <div>Taille</div>
+          <div>Modifié</div>
+        </div>
+        <div class="list" id="list"></div>
+      </div>
+
+      <div class="statusbar" id="statusbar">0 éléments</div>
+    </main>
+  </div>
+
+  <script>
+    // -- le script reste identique à la version précédente --
+    const fs = {
+      type: 'dir', name: '', modified: '2025-12-01 10:00', children: [
+        { type:'dir', name:'Home', modified:'2025-12-01 10:01', children:[
+          { type:'dir', name:'Documents', modified:'2025-12-01 10:02', children:[
+            { type:'file', name:'specs.md', size: 12340, modified:'2025-11-28 09:15' },
+            { type:'file', name:'budget.xlsx', size: 98512, modified:'2025-11-27 17:02' },
+          ]},
+          { type:'dir', name:'Images', modified:'2025-12-01 09:40', children:[
+            { type:'file', name:'photo.png', size: 2104320, modified:'2025-10-12 14:22' },
+            { type:'file', name:'logo.svg', size: 18004, modified:'2025-09-10 08:01' },
+          ]},
+          { type:'file', name:'notes.txt', size: 3210, modified:'2025-12-01 10:03' },
+        ]},
+        { type:'dir', name:'Downloads', modified:'2025-11-25 12:30', children:[
+          { type:'file', name:'installer.deb', size: 45875000, modified:'2025-11-25 12:31' },
+          { type:'file', name:'readme.pdf', size: 540000, modified:'2025-11-20 09:10' },
+        ]},
+        { type:'dir', name:'Music', modified:'2025-10-01 18:00', children:[
+          { type:'file', name:'track.mp3', size: 8300000, modified:'2025-09-01 18:00' },
+        ]},
+      ]
+    };
+
+    const state = {
+      path: ['Home'],
+      history: [],
+      future: [],
+      selectedIndex: null,
+      filter: ''
+    };
+
+    const fmtSize = (n) => {
+      if (n == null) return '';
+      const units = ['B','KB','MB','GB'];
+      let i = 0, v = n;
+      while (v >= 1024 && i < units.length-1){ v /= 1024; i++; }
+      return `${v.toFixed(v<10?1:0)} ${units[i]}`;
+    };
+    const joinPath = (parts) => '/' + parts.join('/');
+    const getNode = (pathParts) => {
+      let node = fs;
+      for (const part of pathParts){
+        if (!node.children) return null;
+        node = node.children.find(c => c.type==='dir' && c.name===part);
+        if (!node) return null;
+      }
+      return node;
+    };
+
+    const $list = document.getElementById('list');
+    const $breadcrumbs = document.getElementById('breadcrumbs');
+    const $status = document.getElementById('statusbar');
+    const $shortcuts = document.getElementById('shortcuts');
+    const $search = document.getElementById('searchInput');
+    const $btnBack = document.getElementById('btnBack');
+    const $btnForward = document.getElementById('btnForward');
+    const $btnUp = document.getElementById('btnUp');
+
+    const shortcuts = [
+      { label:'Home', path:['Home'] },
+      { label:'Documents', path:['Home','Documents'] },
+      { label:'Images', path:['Home','Images'] },
+      { label:'Downloads', path:['Downloads'] },
+      { label:'Music', path:['Music'] },
+    ];
+
+    function renderShortcuts(){
+      $shortcuts.innerHTML = '';
+      shortcuts.forEach(sc => {
+        const el = document.createElement('div');
+        el.className = 'item' + (joinPath(state.path)===joinPath(sc.path) ? ' active':'');
+        el.innerHTML = `<span class="icon dir">📁</span><span>${sc.label}</span>`;
+        el.onclick = () => navigateTo(sc.path, true);
+        $shortcuts.appendChild(el);
+      });
+    }
+
+    function renderBreadcrumbs(){
+      $breadcrumbs.innerHTML = '';
+      const parts = state.path;
+      const root = document.createElement('span');
+      root.className = 'crumb'; root.textContent = '/';
+      root.onclick = () => navigateTo([], true);
+      $breadcrumbs.appendChild(root);
+
+      parts.forEach((p, i) => {
+        const sep = document.createElement('span');
+        sep.className = 'crumb sep'; sep.textContent = '›';
+        $breadcrumbs.appendChild(sep);
+
+        const c = document.createElement('span');
+        c.className = 'crumb'; c.textContent = p;
+        c.onclick = () => navigateTo(parts.slice(0, i+1), true);
+        $breadcrumbs.appendChild(c);
+      });
+    }
+
+    function renderList(){
+      const dir = getNode(state.path) || fs;
+      const items = (dir.children || []).filter(it =>
+        !state.filter || it.name.toLowerCase().includes(state.filter.toLowerCase())
+      );
+
+      $list.innerHTML = '';
+      if (items.length === 0){
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = state.filter ? 'Aucun résultat.' : 'Ce dossier est vide.';
+        $list.appendChild(empty);
+      } else {
+        items.forEach((it, idx) => {
+          const row = document.createElement('div');
+          row.className = 'row' + (state.selectedIndex===idx ? ' selected':'');
+          row.tabIndex = 0;
+
+          row.onclick = () => {
+            state.selectedIndex = idx;
+            renderList();
+            if (it.type === 'dir') {
+              navigateTo([...state.path, it.name], true);
+            }
+          };
+
+          row.ondblclick = () => {
+            if (it.type === 'file') {
+              alert(`Ouvrir: ${joinPath([...state.path, it.name])}`);
+            }
+          };
+
+          row.innerHTML = `
+            <div class="name">
+              <span class="icon ${it.type==='dir' ? 'dir':''}">${it.type==='dir' ? '📁':'📄'}</span>
+              <span title="${it.name}">${it.name}</span>
+            </div>
+            <div>${it.type==='file' ? fmtSize(it.size) : ''}</div>
+            <div>${it.modified || ''}</div>
+          `;
+          $list.appendChild(row);
+        });
+      }
+
+      $status.textContent = `${items.length} élément${items.length>1?'s':''} — ${joinPath(state.path) || '/'}`;
+    }
+
+    function navigateTo(path, pushHistory=false){
+      const target = getNode(path);
+      if (path.length && !target){
+        alert('Dossier introuvable');
+        return;
+      }
+      if (pushHistory){
+        state.history.push([...state.path]);
+        state.future = [];
+      }
+      state.path = [...path];
+      state.selectedIndex = null;
+      renderBreadcrumbs();
+      renderList();
+      renderShortcuts();
+      updateNavButtons();
+    }
+
+    function goBack(){
+      const prev = state.history.pop();
+      if (!prev) return;
+      state.future.push([...state.path]);
+      state.path = prev;
+      state.selectedIndex = null;
+      renderBreadcrumbs();
+      renderList();
+      renderShortcuts();
+      updateNavButtons();
+    }
+
+    function goForward(){
+      const next = state.future.pop();
+      if (!next) return;
+      state.history.push([...state.path]);
+      state.path = next;
+      state.selectedIndex = null;
+      renderBreadcrumbs();
+      renderList();
+      renderShortcuts();
+      updateNavButtons();
+    }
+
+    function goUp(){
+      if (state.path.length === 0) return;
+      navigateTo(state.path.slice(0, -1), true);
+    }
+
+    function updateNavButtons(){
+      $btnBack.disabled = state.history.length === 0;
+      $btnForward.disabled = state.future.length === 0;
+      $btnUp.disabled = state.path.length === 0;
+    }
+
+    $search.addEventListener('input', (e) => {
+      state.filter = e.target.value.trim();
+      renderList();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      const items = (getNode(state.path)?.children || []).filter(it =>
+        !state.filter || it.name.toLowerCase().includes(state.filter.toLowerCase())
+      );
+
+      if (e.key === 'ArrowDown'){
+        e.preventDefault();
+        state.selectedIndex = (state.selectedIndex==null ? 0 : Math.min(items.length-1, state.selectedIndex+1));
+        renderList();
+      } else if (e.key === 'ArrowUp'){
+        e.preventDefault();
+        state.selectedIndex = (state.selectedIndex==null ? 0 : Math.max(0, state.selectedIndex-1));
+        renderList();
+      } else if (e.key === 'Enter' && state.selectedIndex!=null){
+        const it = items[state.selectedIndex];
+        if (it.type === 'dir'){
+          navigateTo([...state.path, it.name], true);
+        } else {
+          alert(`Ouvrir: ${joinPath([...state.path, it.name])}`);
+        }
+      } else if (e.key === 'Backspace'){
+        goUp();
+      }
+    });
+
+    $btnBack.onclick = goBack;
+    $btnForward.onclick = goForward;
+    $btnUp.onclick = goUp;
+
+    navigateTo(state.path, false);
+    renderShortcuts();
+    updateNavButtons();
+  </script>
+</body>
+</html>
