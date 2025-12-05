@@ -259,6 +259,8 @@ btn.addEventListener("mouseover", function() {
 });
 
 
+let messageBloquant = false;
+
 // Validation troll sur le champ message
 champMessage.addEventListener("input", function() {
   const valeur = champMessage.value.trim().toLowerCase();
@@ -270,9 +272,11 @@ champMessage.addEventListener("input", function() {
     "hello world": "Tu t'es trompé de terminal..."
   };
   let message = "";
+  messageBloquant = false; // reset
   for (const mot in interdits) {
     if (valeur.includes(mot)) {
       message = interdits[mot];
+      messageBloquant = true; // bloque l'envoi
       break;
     }
   }
@@ -286,6 +290,40 @@ champMessage.addEventListener("input", function() {
     messageErreur.style.display = "none";
   }
 });
+
+// Bouton qui s'enfuit si champs incomplets ou message bloquant
+btn.addEventListener("mouseover", function() {
+  const nom = champNom.value.trim();
+  const email = champEmail.value.trim();
+  const sujet = champSujet.value.trim();
+  const message = champMessage.value.trim();
+
+  if (!nom || !email || !sujet || !message || messageBloquant) {
+    const x = Math.floor(Math.random() * 600) - 300; 
+    const y = Math.floor(Math.random() * 300) - 150; 
+    btn.style.transform = `translate(${x}px, ${y}px)`;
+    // Change le texte du bouton avec une phrase troll
+    btn.textContent = textesRatés[Math.floor(Math.random() * textesRatés.length)];
+  } else {
+    btn.style.transform = "translate(0,0)";
+    btn.textContent = "Envoyer"; // reset si tout est rempli et pas bloquant
+  }
+});
+
+// Empêche la soumission si champs incomplets ou message bloquant
+btn.addEventListener("click", function(e) {
+  const nom = champNom.value.trim();
+  const email = champEmail.value.trim();
+  const sujet = champSujet.value.trim();
+  const message = champMessage.value.trim();
+
+  if (!nom || !email || !sujet || !message || messageBloquant) {
+    e.preventDefault(); // bloque l'envoi
+    alert("Oups ! Vérifie ton formulaire, il y a des erreurs ou un message interdit !");
+    return false;
+  }
+});
+
 
 // Détection des noms interdits
 champNom.addEventListener("input", function() {
