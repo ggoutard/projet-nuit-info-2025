@@ -145,7 +145,7 @@ button:hover {
 }
 #captchaErreur {
   color: red;
-  font-size: 0.9em;
+  font-size: 1.5em;
   margin-top: 8px;
 }
 @keyframes fall {
@@ -185,6 +185,14 @@ button:hover {
     <button id="captchaValider">Valider</button>
   </div>
 </div>
+
+  <div id="confirmationPage" style="display:none; text-align:center; margin-top:50px;">
+  <h2>Félicitations pour ta patience et ta persévérance !</h2>
+  <p>Pour te récompenser, voici comment accéder à notre jeu Snake : appuie sur Ctrl + Alt + S</p>
+    <p>Amuse-toi bien ;)</p>
+  <button id="retourForm">Retour au formulaire</button>
+</div>
+
 
 <script>
 const nomsInterdits = {
@@ -380,20 +388,40 @@ form.addEventListener("submit", function(e) {
   captchaInputEl.focus();
 });
 
+const confirmationPage = document.getElementById("confirmationPage");
+const retourFormBtn = document.getElementById("retourForm");
+
 captchaValiderBtn.addEventListener("click", function() {
   if (captchaInputEl.value.trim() === currentCaptcha.a) {
     modal.style.display = "none";
-    form.submit();
+    form.style.display = "none";        // cache le formulaire
+    confirmationPage.style.display = "block"; // montre la page de confirmation
   } else {
     captchaErreurEl.textContent = "On savait que tu étais un robot !";
   }
 });
+
+// Option pour revenir au formulaire
+retourFormBtn.addEventListener("click", function() {
+  confirmationPage.style.display = "none";
+  form.style.display = "flex";
+  form.reset();  // réinitialise les champs
+});
+
 
 modal.addEventListener("click", function(e) {
   if (e.target === modal) {
     modal.style.display = "none";
   }
 });
+
+  if (captchaInputEl.value.trim() === currentCaptcha.a) {
+  modal.style.display = "none";
+  form.submit();
+} else {
+  captchaErreurEl.textContent = "On savait que tu étais un robot !";
+}
+
 </script>
 </body>
 </html>
