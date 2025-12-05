@@ -27,9 +27,10 @@ html, body {
   padding: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
+/* HEADER */
 .site-header {
   position: sticky;
   top: 0;
@@ -78,6 +79,7 @@ html, body {
   text-decoration: none;
 }
 
+/* HOME */
 .home .hero {
   max-width: 720px;
   margin: 48px auto;
@@ -85,7 +87,7 @@ html, body {
   text-align: center;
 }
 
-/* Nouveau style pour le titre au-dessus de la barre */
+/* Titre au-dessus de la barre */
 .search-title {
   font-size: 48px;
   font-weight: 700;
@@ -95,8 +97,17 @@ html, body {
   font-family: "Segoe UI", Roboto, sans-serif;
 }
 
+/* Barre + bouton */
+#search-form {
+  display: flex;
+  justify-content: center;
+  gap: 12px; /* espace entre input et bouton */
+  margin-top: 16px;
+}
+
 .search-input {
-  width: min(680px, 90vw);
+  flex: 1;
+  max-width: 500px;
   padding: 12px 14px;
   font-size: 16px;
   border-radius: 12px;
@@ -112,8 +123,7 @@ html, body {
 }
 
 .search-btn {
-  margin-left: 8px;
-  padding: 11px 16px;
+  padding: 11px 18px;
   border-radius: 12px;
   border: none;
   background: var(--primary);
@@ -126,12 +136,22 @@ html, body {
   background: var(--primary-dark);
 }
 
+/* Suggestions rapides */
 .quick-suggestions {
   margin-top: 16px;
   display: flex;
   gap: 8px;
   justify-content: center;
   flex-wrap: wrap;
+}
+
+.suggestions-label {
+  width: 100%;
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-style: italic;
 }
 
 .quick-suggestions button {
@@ -143,15 +163,55 @@ html, body {
   cursor: pointer;
 }
 
+/* SECTIONS BAS */
 .info {
-  max-width: 760px;
-  margin: 24px auto;
-  padding: 0 16px;
+  max-width: 720px;
+  margin: 20px auto;
+  padding: 16px;
 }
 
+.info h2 {
+  margin-top: 0;
+  font-size: 18px;
+  color: var(--primary);
+}
+
+.info p {
+  color: var(--muted);
+  line-height: 1.5;
+  font-size: 15px;
+}
+
+/* Bouton thème */
+#toggle-theme {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+#toggle-theme:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* FOOTER */
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: 12px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 20px;
+}
+
+/* RESULTS PAGE */
 .results {
-  display: grid;
-  grid-template-columns: 1fr 320px;
+  display: flex; /* correction : flexbox */
   gap: 24px;
   max-width: 1100px;
   margin: 24px auto;
@@ -159,6 +219,7 @@ html, body {
 }
 
 .results-list {
+  flex: 1; /* résultats à gauche */
   list-style: decimal;
   padding-left: 24px;
 }
@@ -179,9 +240,9 @@ html, body {
   margin-top: 6px;
 }
 
+/* Panneau latéral */
 .right-panel {
-  position: sticky;
-  top: 72px;
+  width: 320px; /* panneau fixe à droite */
   height: max-content;
 }
 
@@ -194,95 +255,7 @@ html, body {
   box-shadow: 0 8px 24px var(--shadow);
 }
 
-.site-footer {
-  border-top: 1px solid var(--border);
-  padding: 16px;
-  text-align: center;
-  color: var(--muted);
-}
-/* Sections d'information plus compactes */
-.info {
-  max-width: 720px;
-  margin: 20px auto;       /* moins d’espace autour */
-  padding: 16px;           /* réduit le padding interne */
-  background: none;        /* pas de fond de carte */
-  border: none;            /* pas de bordure */
-  box-shadow: none;        /* pas d’ombre */
-}
-
-.info h2 {
-  margin-top: 0;
-  font-size: 18px;         /* plus petit titre */
-  color: var(--primary);
-}
-
-.info p {
-  color: var(--muted);
-  line-height: 1.5;
-  font-size: 15px;
-}
-
-/* Bouton thème plus discret */
-#toggle-theme {
-  margin-top: 8px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--text);
-  font-weight: 500;
-  cursor: pointer;
-}
-
-#toggle-theme:hover {
-  background: var(--primary);
-  color: white;
-}
-
-/* Footer compact */
-.site-footer {
-  border-top: 1px solid var(--border);
-  padding: 12px;
-  text-align: center;
-  color: var(--muted);
-  font-size: 13px;
-  background: none;        /* pas de fond */
-  margin-top: 20px;
-}
-
-/* Conteneur du champ et du bouton */
-#search-form {
-  display: flex;
-  justify-content: center;
-  gap: 12px;   /* espace horizontal entre input et bouton */
-  margin-top: 16px; /* espace au-dessus du formulaire */
-}
-
-.search-input {
-  flex: 1; /* occupe l’espace disponible */
-  max-width: 500px;
-}
-
-.search-btn {
-  padding: 11px 18px;
-  border-radius: 12px;
-  border: none;
-  background: var(--primary);
-  color: white;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.suggestions-label {
-  width: 100%;
-  text-align: center;
-  font-size: 14px;
-  color: var(--muted);
-  margin-bottom: 8px;
-  font-style: italic;
-}
-
-/* Liste des filtres */
+/* Filtres */
 .filters {
   list-style: none;
   padding: 0;
@@ -293,7 +266,6 @@ html, body {
   justify-content: center;
 }
 
-/* Boutons de filtre */
 .filters button {
   padding: 8px 14px;
   border-radius: 20px;
@@ -305,7 +277,6 @@ html, body {
   transition: all 0.2s ease;
 }
 
-/* Effet hover */
 .filters button:hover {
   background: var(--primary);
   color: white;
@@ -313,7 +284,6 @@ html, body {
   box-shadow: 0 4px 12px var(--shadow);
 }
 
-/* Effet actif (quand sélectionné) */
 .filters button:active,
 .filters button.active {
   background: var(--primary-dark);
