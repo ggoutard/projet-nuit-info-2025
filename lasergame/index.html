@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Lasergame en ligne — Shoot the Tech Giants</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0b0f1a;
+      --fg: #eaf2ff;
+      --accent: #7cf5ff;
+      --danger: #ff5d73;
+      --ok: #6cff9c;
+      --gold: #ffd166;
+      --panel: #141a2a;
+      --muted: #96a0b5;
+      --laser: #ff2d88;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%; margin: 0; background: radial-gradient(1200px at 50% 0%, #0b0f1a 0%, #070a12 60%, #05070d 100%);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--fg);
+      cursor: none; /* on masque le vrai curseur */
+    }
+    #game {
+      position: relative; width: 100%; height: 100%;
+      overflow: hidden;
+    }
+    /* HUD */
+    #hud {
+      position: absolute; top: 0; left: 0; right: 0; padding: 12px;
+      display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;
+      z-index: 20;
+    }
+    .stats {
+      display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+      background: rgba(20,26,42,0.6); border: 1px solid #1f2744; border-radius: 12px; padding: 8px 12px;
+      backdrop-filter: blur(6px);
+    }
+    .stat { display: flex; gap: 8px; align-items: center; }
+    .bar {
+      width: 180px; height: 12px; background: #1b2339; border-radius: 6px; overflow: hidden; border: 1px solid #263055;
+    }
+    .bar>span { display: block; height: 100%; background: linear-gradient(90deg, #6cff9c, #35c77a); }
+    .timer {
+      min-width: 90px; text-align: center; background: #1b2339; border-radius: 8px; padding: 6px 10px; border: 1px solid #263055;
+    }
+    .btns { display: flex; gap: 8px; }
+    button {
+      background: linear-gradient(180deg, #253054, #1c2440);
+      color: var(--fg); border: 1px solid #31406b; border-radius: 10px; padding: 10px 14px; font-weight: 600;
+      box-shadow: 0 0 0 0 rgba(124,245,255,0); transition: box-shadow .2s, transform .05s, background .2s;
+    }
+    button:hover { box-shadow: 0 0 16px 2px rgba(124,245,255,0.25); }
+    button:active { transform: translateY(1px) scale(0.99); }
+    select, input[type="text"] {
+      background: #11162a; border: 1px solid #2b365e; color: var(--fg); border-radius: 10px; padding: 8px 10px;
+    }
+
+    /* Reticule / curseur laser */
+    #reticle {
+      position: absolute; width: 26px; height: 26px; margin-left: -13px; margin-top: -13px;
+      pointer-events: none; z-index: 30; filter: drop-shadow(0 0 6px rgba(255,45,136,0.7));
+    }
+    #reticle::before, #reticle::after {
+      content: ""; position: absolute; left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+    }
+    #reticle::before { width: 26px; height: 26px; border: 2px solid var(--laser); }
+    #reticle::after  { width: 6px; height: 6px; background: var(--laser); }
+
+    /* Laser beam */
+    .beam {
+      position: absolute; height: 3px; background: linear-gradient(90deg, #ff2d88, #ffd166);
+      box-shadow: 0 0 8px #ff2d88; transform-origin: 0 50%; z-index: 15;
+    }
+
+    /* Cibles tech */
+    .target {
+      position: absolute; padding: 10px 14px; border-radius: 12px;
+      background: linear-gradient(180deg, #1a2140, #121833);
+      border: 1px solid #2b365f; color: var(--fg); font-weight: 700;
+      text-shadow: 0 0 6px rgba(124,245,255,0.15);
+      user-select: none; z-index: 10;
+    }
+    .target .badge {
+      display: inline-block; font-size: 12px; font-weight: 600; color: var(--gold);
+      background: rgba(255,209,102,0.12); border: 1px solid rgba(255,209,102,0.3);
+      padding: 2px 6px; border-radius: 999px; margin-left: 8px;
+    }
+    .target.ai { border-color: #3bd3ff; }
+    .target.bigtech { border-color: #7cf5ff; }
+    .target.china { border-color: #84ffa7; }
+    .target:after {
+      content: ""; position: absolute; inset: 0; border-radius: inherit;
+      box-shadow: inset 0 0 30px rgba(124,245,255,0.12);
+    }
+
+    /* Projectiles ennemis */
+    .enemy-bullet {
+      position: absolute; width: 10px; height: 10px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ffd166 15%, #ff5d73 60%, #b21435 100%);
+      box-shadow: 0 0 10px rgba(255,93,115,0.6); z-index: 12;
+    }
+
+    /* Arrière-plan étoiles */
+    #stars {
+      position: absolute; inset: 0; z-index: 0; background:
+       radial-gradient(1px 1px at 10% 20%, #b8c3f5 0, transparent 40%),
+       radial-gradient(1px 1px at 60% 10%, #a2b0ea 0, transparent 40%),
+       radial-gradient(1px 1px at 30% 70%, #91a1e0 0, transparent 40%),
+       radial-gradient(1px 1px at 80% 80%, #b8c3f5 0, transparent 40%);
+      opacity: 0.35;
+    }
+
+    /* Tableau des scores */
+    #leaderboard {
+      position: absolute; right: 12px; bottom: 12px; width: 340px; max-width: calc(100% - 24px);
+      background: rgba(20,26,42,0.7); border: 1px solid #2b365e; border-radius: 12px; padding: 10px;
+      backdrop-filter: blur(6px); z-index: 25;
+    }
+    #leaderboard h3 { margin: 6px 0 8px; font-size: 16px; color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #1f2744; }
+    th { color: var(--muted); font-weight: 600; }
+    tr.highlight td { background: rgba(124,245,255,0.08); }
+
+    /* Overlay de démarrage / fin */
+    #overlay {
+      position: absolute; inset: 0; background: rgba(5,7,13,0.6); backdrop-filter: blur(6px);
+      display: grid; place-items: center; z-index: 40;
+    }
+    .panel {
+      width: min(680px, 92vw); background: linear-gradient(180deg, #161b2e, #101528);
+      border: 1px solid #2b365e; border-radius: 16px; padding: 18px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+    }
+    .panel h1 { margin: 0 0 10px; font-size: 24px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .muted { color: var(--muted); }
+    .hidden { display: none !important; }
+
+    /* Animation quand le curseur prend des dégâts */
+    @keyframes hitFlash {
+    0%   { transform: scale(1) translate(0,0); filter: drop-shadow(0 0 6px rgba(255,45,136,0.7)); }
+    25%  { transform: scale(1.2) translate(-3px, 2px); filter: drop-shadow(0 0 12px rgba(255,0,0,0.9)); }
+    50%  { transform: scale(0.9) translate(3px, -2px); filter: drop-shadow(0 0 12px rgba(255,0,0,0.9)); }
+    75%  { transform: scale(1.1) translate(-2px, -3px); filter: drop-shadow(0 0 12px rgba(255,0,0,0.9)); }
+    100% { transform: scale(1) translate(0,0); filter: drop-shadow(0 0 6px rgba(255,45,136,0.7)); }
+    }
+
+    #reticle.hit {
+    animation: hitFlash 0.3s ease;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div id="stars"></div>
+
+    <div id="hud">
+      <div class="stats">
+        <div class="stat"><strong>Score:</strong> <span id="score">0</span></div>
+        <div class="stat"><strong>Santé:</strong>
+          <div class="bar"><span id="hpbar" style="width:100%"></span></div>
+        </div>
+        <div class="stat"><strong>Mode:</strong> <span id="modeLabel">Classique</span></div>
+        <div class="stat timer"><span id="timer">02:00</span></div>
+      </div>
+      <div class="btns">
+        <button id="startBtn">Démarrer</button>
+        <button id="pauseBtn">Pause</button>
+        <button id="resetBtn">Reset</button>
+        <select id="modeSelect" title="Choisir un mode">
+          <option value="classic">Classique (2 min)</option>
+          <option value="survival">Survie</option>
+          <option value="frenzy">Frénésie</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="reticle" aria-hidden="true"></div>
+
+    <div id="leaderboard">
+      <h3>Tableau des scores</h3>
+      <table>
+        <thead>
+          <tr><th>Joueur</th><th>Mode</th><th>Score</th><th>Date</th></tr>
+        </thead>
+        <tbody id="lbBody"></tbody>
+      </table>
+    </div>
+
+    <div id="overlay">
+      <div class="panel">
+        <h1>Lasergame — Visez les géants de la tech</h1>
+        <p class="muted">Clique pour tirer. Esquive leurs tirs. À la fin, enregistre ton pseudo et compare tes scores.</p>
+        <div class="grid">
+          <div>
+            <label><strong>Pseudo</strong></label>
+            <input type="text" id="playerName" placeholder="Ton pseudo" />
+          </div>
+          <div>
+            <label><strong>Mode de jeu</strong></label>
+            <select id="overlayMode">
+              <option value="classic">Classique (2 min)</option>
+              <option value="survival">Survie</option>
+              <option value="frenzy">Frénésie</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+          <button id="overlayStart">Jouer</button>
+          <button id="overlayClose">Fermer</button>
+        </div>
+        <p class="muted" style="margin-top:8px;">Conseil: vise, tire, ressens le frisson — les géants ripostent.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Utilitaires
+    const rand = (min, max) => Math.random() * (max - min) + min;
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    const now = () => performance.now();
+
+    // État du jeu
+    const state = {
+      running: false,
+      paused: false,
+      score: 0,
+      hp: 100,
+      mode: 'classic',
+      timeLeft: 120000, // ms
+      lastFrame: 0,
+      targets: [],
+      bullets: [],
+      player: { x: window.innerWidth/2, y: window.innerHeight/2 },
+      name: 'Anonyme',
+    };
+
+    const techTargets = [
+      { label: 'Google', tag: 'G', group: 'bigtech', points: 50 },
+      { label: 'Apple', tag: 'A', group: 'bigtech', points: 60 },
+      { label: 'Meta', tag: 'M', group: 'bigtech', points: 55 },
+      { label: 'Amazon', tag: 'AMZ', group: 'bigtech', points: 50 },
+      { label: 'Microsoft', tag: 'MS', group: 'bigtech', points: 65 },
+      { label: 'OpenAI', tag: 'AI', group: 'ai', points: 80 },
+      { label: 'Anthropic', tag: 'AI', group: 'ai', points: 70 },
+      { label: 'NVIDIA', tag: 'GPU', group: 'ai', points: 75 },
+      { label: 'ByteDance', tag: 'CN', group: 'china', points: 55 },
+      { label: 'Tencent', tag: 'CN', group: 'china', points: 55 },
+      { label: 'X', tag: 'SOC', group: 'bigtech', points: 50 },
+    ];
+
+    // DOM refs
+    const game = document.getElementById('game');
+    const reticle = document.getElementById('reticle');
+    const scoreEl = document.getElementById('score');
+    const hpbar = document.getElementById('hpbar');
+    const timerEl = document.getElementById('timer');
+    const modeLabel = document.getElementById('modeLabel');
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const modeSelect = document.getElementById('modeSelect');
+    const overlay = document.getElementById('overlay');
+    const overlayStart = document.getElementById('overlayStart');
+    const overlayClose = document.getElementById('overlayClose');
+    const playerNameInput = document.getElementById('playerName');
+    const overlayMode = document.getElementById('overlayMode');
+    const lbBody = document.getElementById('lbBody');
+
+    // Leaderboard via localStorage
+    function loadLB() {
+      const list = JSON.parse(localStorage.getItem('laser_lb') || '[]');
+      lbBody.innerHTML = '';
+      const sorted = list.sort((a,b) => b.score - a.score).slice(0, 12);
+      for (const e of sorted) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${e.name}</td><td>${labelMode(e.mode)}</td><td>${e.score}</td><td>${new Date(e.date).toLocaleString()}</td>`;
+        lbBody.appendChild(tr);
+      }
+    }
+    function saveLB(entry) {
+      const list = JSON.parse(localStorage.getItem('laser_lb') || '[]');
+      list.push(entry);
+      localStorage.setItem('laser_lb', JSON.stringify(list));
+      loadLB();
+    }
+    function labelMode(m) {
+      if (m === 'classic') return 'Classique';
+      if (m === 'survival') return 'Survie';
+      if (m === 'frenzy') return 'Frénésie';
+      return m;
+    }
+
+    // Création d’une cible
+    function spawnTarget() {
+      const spec = techTargets[Math.floor(Math.random()*techTargets.length)];
+      const el = document.createElement('div');
+      el.className = `target ${spec.group}`;
+      el.innerHTML = `${spec.label} <span class="badge">+${spec.points}</span>`;
+      const w = game.clientWidth, h = game.clientHeight;
+      const x = rand(40, w-160), y = rand(80, h-140);
+      el.style.left = x + 'px';
+      el.style.top  = y + 'px';
+      game.appendChild(el);
+      const t = {
+        el, x, y, vx: rand(-0.08, 0.08), vy: rand(-0.08, 0.08),
+        points: spec.points, group: spec.group, label: spec.label,
+        fireCooldown: rand(1000, 2500),
+        lastFire: now(),
+      };
+      state.targets.push(t);
+    }
+
+    // Tir ennemi
+    function enemyFire(t) {
+      const b = document.createElement('div');
+      b.className = 'enemy-bullet';
+      const sx = t.x + t.el.offsetWidth/2, sy = t.y + t.el.offsetHeight/2;
+      b.style.left = sx + 'px'; b.style.top = sy + 'px';
+      game.appendChild(b);
+      const dx = state.player.x - sx, dy = state.player.y - sy;
+      const len = Math.hypot(dx, dy) || 1;
+      const speed = state.mode === 'frenzy' ? 0.45 : state.mode === 'survival' ? 0.40 : 0.32;
+      const bullet = { el: b, x: sx, y: sy, vx: dx/len * speed, vy: dy/len * speed, alive: true };
+      state.bullets.push(bullet);
+    }
+
+    // Beam visuel
+    function makeBeam(x1, y1, x2, y2) {
+      const beam = document.createElement('div');
+      beam.className = 'beam';
+      const dx = x2 - x1, dy = y2 - y1;
+      const len = Math.hypot(dx, dy);
+      const ang = Math.atan2(dy, dx);
+      beam.style.left = x1 + 'px';
+      beam.style.top  = y1 + 'px';
+      beam.style.width = len + 'px';
+      beam.style.transform = `rotate(${ang}rad)`;
+      game.appendChild(beam);
+      setTimeout(() => beam.remove(), 60);
+    }
+
+    // Mise à jour HUD
+    function updateHUD() {
+      scoreEl.textContent = state.score;
+      hpbar.style.width = clamp(state.hp, 0, 100) + '%';
+      modeLabel.textContent = labelMode(state.mode);
+      const s = Math.max(0, Math.floor(state.timeLeft/1000));
+      const mm = String(Math.floor(s/60)).padStart(2,'0');
+      const ss = String(s%60).padStart(2,'0');
+      timerEl.textContent = `${mm}:${ss}`;
+    }
+
+    // Boucle de jeu
+    function loop(ts) {
+      if (!state.running || state.paused) { state.lastFrame = ts; requestAnimationFrame(loop); return; }
+      const dt = ts - state.lastFrame;
+      state.lastFrame = ts;
+
+      // Timer classique
+      if (state.mode === 'classic') {
+        state.timeLeft -= dt;
+        if (state.timeLeft <= 0) return endGame();
+      } else if (state.mode === 'survival') {
+        state.hp -= dt * 0.006; // drain lent
+        if (state.hp <= 0) return endGame();
+      } // frenzy n’a pas de timer, mais on peut mettre 90s
+      if (state.mode === 'frenzy') {
+        state.timeLeft -= dt;
+        if (state.timeLeft <= 0) return endGame();
+      }
+
+      // Mouvements cibles + tir ennemi
+      const w = game.clientWidth, h = game.clientHeight;
+      for (const t of state.targets) {
+        t.x += t.vx * dt; t.y += t.vy * dt;
+        // rebonds
+        const tw = t.el.offsetWidth, th = t.el.offsetHeight;
+        if (t.x < 10 || t.x > w - tw - 10) t.vx *= -1;
+        if (t.y < 60 || t.y > h - th - 10) t.vy *= -1;
+        t.el.style.left = t.x + 'px'; t.el.style.top = t.y + 'px';
+
+        // cadence de tir
+        const rate = state.mode === 'frenzy' ? 700 : state.mode === 'survival' ? 900 : 1200;
+        if (ts - t.lastFire > Math.max(rate, t.fireCooldown)) {
+          enemyFire(t);
+          t.lastFire = ts;
+        }
+      }
+
+      // Mouvements des projectiles
+      for (const b of state.bullets) {
+        if (!b.alive) continue;
+        b.x += b.vx * dt; b.y += b.vy * dt;
+        b.el.style.left = b.x + 'px'; b.el.style.top = b.y + 'px';
+        // collision avec joueur (reticle)
+        const dx = b.x - state.player.x, dy = b.y - state.player.y;
+        if (Math.hypot(dx, dy) < 16) {
+        b.alive = false;
+        b.el.remove();
+        state.hp -= state.mode === 'frenzy' ? 10 : state.mode === 'survival' ? 8 : 6;
+
+        // Ajout de l’animation au curseur
+        reticle.classList.add('hit');
+        setTimeout(() => reticle.classList.remove('hit'), 300);
+
+        if (state.hp <= 0) return endGame();
+        }
+
+        // hors écran
+        if (b.x < -20 || b.x > w+20 || b.y < -20 || b.y > h+20) {
+          b.alive = false; b.el.remove();
+        }
+      }
+
+      updateHUD();
+      requestAnimationFrame(loop);
+    }
+
+    // Tir du joueur
+    function playerShoot(x, y) {
+      // rayon vers la cible la plus proche de la ligne
+      let best = null, bestDist = 9999;
+      for (const t of state.targets) {
+        const cx = t.x + t.el.offsetWidth/2;
+        const cy = t.y + t.el.offsetHeight/2;
+        const d = Math.hypot(cx - x, cy - y);
+        if (d < bestDist) { best = t; bestDist = d; }
+      }
+      if (best && bestDist < 220) {
+        const tx = best.x + best.el.offsetWidth/2;
+        const ty = best.y + best.el.offsetHeight/2;
+        makeBeam(state.player.x, state.player.y, tx, ty);
+        // hit
+        state.score += best.points;
+        // petite explosion visuelle
+        best.el.style.transform = 'scale(0.92)';
+        best.el.style.boxShadow = '0 0 18px rgba(255,93,115,0.6)';
+        setTimeout(() => {
+          best.el.remove();
+          state.targets = state.targets.filter(t => t !== best);
+          spawnTarget();
+        }, 60);
+      } else {
+        // tir à vide: beam court
+        const x2 = x + (Math.random() * 60 - 30);
+        const y2 = y + (Math.random() * 60 - 30);
+        makeBeam(state.player.x, state.player.y, x2, y2);
+      }
+      updateHUD();
+    }
+
+    // Démarrer / reset
+    function startGame() {
+      // nettoyage
+      for (const t of state.targets) t.el.remove();
+      for (const b of state.bullets) b.el.remove();
+      state.targets = []; state.bullets = [];
+      state.score = 0; state.hp = 100;
+      state.lastFrame = now();
+      state.running = true; state.paused = false;
+
+      // config mode
+      if (state.mode === 'classic') state.timeLeft = 120000;
+      if (state.mode === 'frenzy') state.timeLeft = 90000;
+      if (state.mode === 'survival') state.timeLeft = Infinity;
+
+      // spawns init
+      const count = state.mode === 'frenzy' ? 9 : state.mode === 'survival' ? 7 : 6;
+      for (let i=0;i<count;i++) spawnTarget();
+
+      overlay.classList.add('hidden');
+      updateHUD();
+      requestAnimationFrame(loop);
+    }
+
+    function endGame() {
+      state.running = false;
+      // sauvegarde score
+      saveLB({ name: state.name || 'Anonyme', score: state.score, mode: state.mode, date: Date.now() });
+      // afficher overlay fin
+      overlay.classList.remove('hidden');
+      overlay.querySelector('h1').textContent = 'Fin de partie';
+      overlay.querySelector('.muted').textContent = `Score: ${state.score} — Mode: ${labelMode(state.mode)}. Rejouer pour améliorer ton classement !`;
+    }
+
+    function resetGame() {
+      state.running = false; state.paused = false; state.score = 0; state.hp = 100;
+      state.timeLeft = 120000;
+      for (const t of state.targets) t.el.remove();
+      for (const b of state.bullets) b.el.remove();
+      state.targets = []; state.bullets = [];
+      overlay.classList.remove('hidden');
+      overlay.querySelector('h1').textContent = 'Lasergame — Visez les géants de la tech';
+      overlay.querySelector('.muted').textContent = 'Clique pour tirer. Esquive leurs tirs. À la fin, enregistre ton pseudo et compare tes scores.';
+      updateHUD();
+    }
+
+    // Événements UI
+    window.addEventListener('mousemove', (e) => {
+      state.player.x = e.clientX; state.player.y = e.clientY;
+      reticle.style.left = e.clientX + 'px'; reticle.style.top = e.clientY + 'px';
+    });
+    window.addEventListener('mousedown', (e) => {
+      if (!state.running || state.paused) return;
+      playerShoot(e.clientX, e.clientY);
+    });
+
+    startBtn.addEventListener('click', () => startGame());
+    pauseBtn.addEventListener('click', () => {
+      if (!state.running) return;
+      state.paused = !state.paused;
+      pauseBtn.textContent = state.paused ? 'Reprendre' : 'Pause';
+    });
+    resetBtn.addEventListener('click', resetGame);
+    modeSelect.addEventListener('change', (e) => {
+      state.mode = e.target.value;
+      overlayMode.value = state.mode;
+      updateHUD();
+    });
+    overlayMode.addEventListener('change', (e) => {
+      state.mode = e.target.value;
+      modeSelect.value = state.mode;
+      updateHUD();
+    });
+    overlayStart.addEventListener('click', () => {
+      state.name = playerNameInput.value.trim() || 'Anonyme';
+      startGame();
+    });
+    overlayClose.addEventListener('click', () => {
+      overlay.classList.add('hidden');
+    });
+
+    // Initialisation
+    loadLB();
+    updateHUD();
+
+    // Ajuster si la fenêtre change
+    window.addEventListener('resize', () => {
+      // rien de critique; les cibles rebondissent avec les nouvelles limites
+    });
+  </script>
+</body>
+</html>
+
