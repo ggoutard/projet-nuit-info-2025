@@ -153,6 +153,30 @@ button{
   letter-spacing:.2px;
   transition:transform .2s, box-shadow .2s, filter .2s;
 }
+
+.neon-container button::before {
+  display: none !important;
+}
+
+/* Toute la carte des défis est un bouton cliquable */
+.neon-container {
+  cursor: pointer;
+}
+
+/* Empêche le bouton interne d’intercepter les clics */
+.neon-container button {
+  pointer-events: none;
+}
+
+/* Hover global sur un défi */
+.neon-container:hover {
+  box-shadow: var(--glow-card);
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+}
+
+
+
 button::before{
   content:"";
   position:absolute; inset:-2px; border-radius:inherit; padding:2px;
@@ -275,7 +299,7 @@ p, ul{padding:0}
 
   <!-- Page d’un thème -->
   <div id="themeDetail" class="hidden">
-    <button onclick="showThemes()">Retour</button>
+    <button onclick="showThemes()">⬅ Retour</button>
     <h2 id="themeTitle"></h2>
     <ul id="questsList"></ul>
   </div>
@@ -425,7 +449,7 @@ function showTheme(index = null) {
   const btn = document.createElement("button");
   btn.textContent = quest.title;
   btn.style.marginBottom = "6px";
-  btn.onclick = () => showQuest(idx);
+  questContainer.onclick = () => showQuest(idx);
 
   // Calculer progression
   const qCompleted = quest.completedSteps ? quest.completedSteps.filter(v => v).length : 0;
