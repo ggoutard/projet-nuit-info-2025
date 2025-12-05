@@ -191,12 +191,51 @@ p, ul { padding: 0; }
 const data = {
   themes: [
     {
-      name: "Logiciels Libres",
-      quests: [
-        { title: "Découvrir les alternatives libres", steps: ["Identifier un logiciel propriétaire utilisé", "Trouver son équivalent libre", "Installer et tester en classe", "Partager un retour d’expérience"] },
-        { title: "Former les utilisateurs", steps: ["Créer un mini-guide ou tutoriel", "Organiser une séance de découverte", "Collecter les impressions"] }
-      ]
-    },
+      name: "Découvrir et adopter Linux",
+description: "Apprendre à installer, utiliser et apprécier Linux comme système d'exploitation simple, libre et accessible, tout en découvrant ses avantages pour l'autonomie numérique.",
+quests: [
+  {
+    title: "Installer Linux pour la première fois",
+    steps: [
+      "Choisir une distribution adaptée (Ubuntu, Linux Mint, Fedora...)",
+      "Télécharger l'image ISO depuis le site officiel",
+      "Créer une clé USB bootable avec un outil comme Rufus ou Etcher",
+      "Démarrer l'ordinateur depuis la clé USB",
+      "Suivre l'assistant d'installation pas à pas"
+    ]
+  },
+  {
+    title: "Découvrir l'environnement de bureau",
+    steps: [
+      "Se familiariser avec le menu des applications",
+      "Tester les raccourcis clavier basiques (copier, coller, ouvrir un terminal)",
+      "Personnaliser le bureau (fond d’écran, thèmes, icônes)",
+      "Installer des logiciels via le gestionnaire d’applications",
+      "Explorer les paramètres système pour ajuster son expérience"
+    ]
+  },
+  {
+    title: "Installer des logiciels utiles",
+    steps: [
+      "Ouvrir le gestionnaire de paquets (ex: Ubuntu Software, Synaptic)",
+      "Chercher et installer un navigateur web (Firefox, Brave...)",
+      "Installer une suite bureautique libre (LibreOffice)",
+      "Ajouter un lecteur multimédia (VLC)",
+      "Découvrir la commande `sudo apt install` pour les plus curieux"
+    ]
+  },
+  {
+    title: "Prouver que Linux est simple à utiliser",
+    steps: [
+      "Tester la navigation web et constater la fluidité",
+      "Rédiger un document avec LibreOffice",
+      "Regarder une vidéo avec VLC",
+      "Mettre à jour le système en un clic",
+      "Partager son expérience avec un ami pour montrer la simplicité"
+    ]
+  }
+  ]
+  },
     {
       name: "Durabilité du matériel",
       quests: [
@@ -236,6 +275,7 @@ const data = {
             "Débrancher sa box internet avant de partir en vacances"
           ]
         }
+    ]
         }
   ]
 };
