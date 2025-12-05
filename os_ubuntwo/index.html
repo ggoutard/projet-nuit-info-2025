@@ -266,7 +266,6 @@
     <div class="app" data-app="target" title="Objectif">✅<span class="dot"></span></div>
     <div class="app" data-app="terminal" title="Terminal">⌨️<span class="dot"></span></div>
     <div class="app" data-app="nav" title="Navigateur">🌐<span class="dot"></span></div>
-    <div class="app" data-app="snake" title="Snake">🐍<span class="dot"></span></div>
     <div class="app" data-app="cible" title="Laser Game">🎯<span class="dot"></span></div>
     <div class="app" data-app="shoot" title="GAFAM WAR">🚀<span class="dot"></span></div>
     <div class="app" data-app="contact" title="Contact">📞<span class="dot"></span></div>
@@ -743,9 +742,7 @@ appMap['target'] = 'target';
     });
     notesArea.addEventListener('input', saveNotes);
     window.addEventListener('load', ()=>{ const saved=localStorage.getItem('notes'); if(saved) notesArea.value=saved; });
-    window.addEventListener('keydown', (e)=>{
-      if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s'){ e.preventDefault(); saveNotes(); alert('Sauvegardé'); }
-    });
+
   }
 
   // Calculatrice (sans eval)
@@ -1012,6 +1009,14 @@ window.simpleNav = {
   reloadIframe,
   getHistory: () => ({ stack: historyStack.slice(), index: historyIndex }),
 };
+
+// Raccourci clavier : Ctrl + Alt + S → ouvrir Snake
+window.addEventListener("keydown", (e) => {
+  if (e.ctrlKey && e.altKey && e.key.toLowerCase() === "s") {
+    e.preventDefault();
+    openWin("snake"); // ouvre la fenêtre Snake
+  }
+});
 
 </script>
 </body>
