@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Terminal fidèle — Emulateur (frontend only)</title>
+<style>
+:root{
+  --bg:#0b0f14; --panel:#091019; --accent:#7dd3fc; --muted:#8b95a3; --green:#7efc8d; --red:#ff7b7b; --yellow:#ffd86b; --font: "Fira Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:linear-gradient(180deg,#02040a 0%, #07101a 100%);font-family:var(--font);color:#e6eef6}
+.app{max-width:1100px;margin:24px auto;border-radius:12px;overflow:hidden;box-shadow:0 10px 40px rgba(2,6,23,0.6)}
+.header{display:flex;align-items:center;gap:12px;padding:10px 14px;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-bottom:1px solid rgba(255,255,255,0.02)}
+.controls{display:flex;gap:8px}
+.control{width:12px;height:12px;border-radius:50%;box-shadow:inset 0 -1px 0 rgba(0,0,0,0.25)}
+.c-red{background:#ff5f56}
+.c-yellow{background:#ffbd2e}
+.c-green{background:#27c93f}
+.title{flex:1;text-align:center;font-size:13px;color:var(--muted)}
+.term{background:var(--panel);padding:18px;min-height:420px;font-size:14px;line-height:1.45}
+.screen{max-height:60vh;overflow:auto;padding-bottom:6px}
+.line{white-space:pre-wrap;word-break:break-word}
+.prompt{display:inline-block;color:var(--accent);margin-right:8px}
+.input-line{display:flex;align-items:flex-start;gap:8px}
+.cmdinput{outline:none;border:none;background:transparent;color:inherit;font:inherit;min-width:2ch}
+.caret{display:inline-block;width:8px;height:18px;background:var(--accent);opacity:0.9;vertical-align:middle;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.meta{color:var(--muted);font-size:12px}
+.output{margin-bottom:4px}
+a{color:var(--accent)}
+.toolbar{display:flex;gap:12px;align-items:center;padding:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));border-top:1px solid rgba(255,255,255,0.02)}
+.btn{padding:6px 10px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.02);cursor:pointer}
+.small{font-size:12px;color:var(--muted)}
+/* ansi colors mapping */
+.ansi-black{color:#0f1720}
+.ansi-red{color:var(--red)}
+.ansi-green{color:var(--green)}
+.ansi-yellow{color:var(--yellow)}
+.ansi-blue{color:#74a3ff}
+.ansi-magenta{color:#c084fc}
+.ansi-cyan{color:var(--accent)}
+.ansi-white{color:#e6eef6}
+.ansi-bright-black{color:#6b7280}
+.ansi-bright-white{color:#ffffff}
+.footer-note{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+  <div class="header">
+
+    <div style="width:64px"></div>
+  </div>
+  <div class="term">
+    <div id="screen" class="screen" tabindex="0" aria-live="polite"></div>
+    <div id="input-area" class="input-line" aria-hidden="false">
+      <div id="prompt" class="prompt"></div>
+      <div id="editor" contenteditable="true" class="cmdinput" spellcheck="false" aria-label="ligne de commande"></div>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="btn-clear" style="visibility: hidden;"></button>
+      <button class="btn" id="btn-help" style="visibility: hidden;"></button>
+      <div class="small"></div>
+    </div>
+  </div>
+  <div style="padding:8px 12px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0));border-top:1px solid rgba(255,255,255,0.02)"><span class="footer-note">Emulateur frontend — sans backend. Conçu pour ressembler au plus proche à un vrai shell.</span></div>
+</div>
+<script>
+// Terminal emulator (frontend-only) — features: history, fake fs, basic commands, ANSI color parsing, tab completion, multiline paste handling
+(function(){
+  const screen = document.getElementById('screen');
+  const editor = document.getElementById('editor');
+  const promptEl = document.getElementById('prompt');
+  const caret = document.getElementById('caret');
+  const btnClear = document.getElementById('btn-clear');
+  const btnHelp = document.getElementById('btn-help');
+
+  // Simple pseudo-filesystem
+  const fs = {
+    '/': {type:'dir', children: ['home','etc','var','README.txt']},
+    '/home': {type:'dir', children: ['user']},
+    '/home/user': {type:'dir', children: ['notes.txt','projects']},
+    '/home/user/projects': {type:'dir', children: ['term-sim']},
+    '/etc': {type:'dir', children: ['passwd']},
+    '/var': {type:'dir', children: []},
+    '/README.txt': {type:'file', content:'Bienvenue sur le terminal fidèle\nTapez `help` pour la liste des commandes.'},
+    '/home/user/notes.txt': {type:'file', content:'- Rappel: sauvegarder souvent\n- TODO: améliorer autocomplétion'},
+    '/etc/passwd': {type:'file', content:'root:x:0:0:root:/root:/bin/bash\nuser:x:1000:1000:User,,,:/home/user:/bin/bash'}
+  };
+
+  let cwd = '/home/user';
+  const user = 'utilisateur';
+  const hostname = 'local';
+
+  const history = [];
+  let historyCursor = -1;
+
+  const commands = {
+    help(args){
+      return `Commandes disponibles:\nhelp, ls, pwd, cd, cat, echo, date, clear, man, uptime, whoami, sudo, apropos, tree`;
+    },
+    ls(args){
+      const path = resolvePath(args[0]||'.');
+      const node = fs[path];
+      if(!node) return `ls: impossible d'accéder à '${args[0]||'.'}': Aucun fichier ou dossier de ce type`;
+      if(node.type==='file') return `${getName(path)}`;
+      return node.children.join('\t') || '';
+    },
+    pwd(){return cwd},
+    cd(args){
+      const p = args[0]||'/home/user';
+      const path = resolvePath(p);
+      const node = fs[path];
+      if(!node || node.type==='file') return `cd: ${p}: Aucun dossier de ce type`;
+      cwd = path; return '';
+    },
+    cat(args){
+      if(!args[0]) return 'cat: fichier manquant';
+      const path = resolvePath(args[0]);
+      const node = fs[path];
+      if(!node) return `cat: ${args[0]}: Aucun fichier ou dossier de ce type`;
+      if(node.type==='dir') return `cat: ${args[0]}: Is a directory`;
+      return node.content || '';
+    },
+    echo(args){
+      // support echo -e for \n and basic escape sequences
+      let s = args.join(' ');
+      if(s.startsWith('-e ')){ s = s.slice(3); s = s.replace(/\\n/g,'\n'); }
+      return s;
+    },
+    date(){ return (new Date()).toString(); },
+    clear(){ screen.innerHTML=''; return ''; },
+    uptime(){ return `up ${Math.floor(Math.random()*5)} days, ${Math.floor(Math.random()*24)}:${String(Math.floor(Math.random()*60)).padStart(2,'0')}`},
+    whoami(){ return user },
+    sudo(args){ return `Mot de passe pour ${user}: \nSorry, sudo is not supported in this frontend emulator.` },
+    man(args){
+      const cmd = args[0];
+      if(!cmd) return 'Usage: man <commande>';
+      const m = {
+        ls: 'ls — liste le contenu des dossiers (simulé).',
+        cat: 'cat — affiche le contenu d\'un fichier (simulé).',
+        help: 'help — affiche les commandes disponibles.'
+      };
+      return m[cmd]||(`Aucun manuel pour ${cmd}`);
+    },
+    tree(args){
+      const path = resolvePath(args[0]||'.');
+      if(!fs[path]) return `tree: '${args[0]||'.'}': Aucun fichier ou dossier de ce type`;
+      const lines = [];
+      function walk(p, prefix=''){
+        const node = fs[p];
+        lines.push(prefix + getName(p));
+        if(node.type==='dir'){
+          for(const c of node.children){
+            const childPath = (p==='/'? '':p) + '/' + c.replace(/^\//,'');
+            walk(childPath, prefix + '  ');
+          }
+        }
+      }
+      walk(path,'');
+      return lines.join('\n');
+    },
+    apropos(args){ return 'Aucun résultat — ceci est une simulation.' }
+  };
+
+  const builtins = Object.keys(commands);
+
+  function getName(p){ if(p==='/' ) return '/'; return p.split('/').filter(Boolean).slice(-1)[0]; }
+
+  function resolvePath(arg){
+    if(!arg) return cwd;
+    if(arg.startsWith('/')) return normalize(arg);
+    if(arg==='.') return cwd;
+    if(arg==='..') return normalize(cwd + '/..');
+    return normalize((cwd==='/'? '':cwd) + '/' + arg);
+  }
+
+  function normalize(p){
+    const parts = p.split('/');
+    const stack = [];
+    for(const part of parts){
+      if(part===''||part==='.') continue;
+      if(part==='..'){ stack.pop(); continue; }
+      stack.push(part);
+    }
+    return '/' + stack.join('/');
+  }
+
+  // ANSI SGR (very small) parser
+  function ansiToHtml(str){
+    // replace simple sequences like \x1b[31m ... \x1b[0m
+    return str.replace(/\x1b\[([0-9;]+)m/g, (m, codes)=>{
+      const parts = codes.split(';').map(Number);
+      const classes = parts.map(code=>{
+        switch(code){
+          case 30: return 'ansi-black';
+          case 31: return 'ansi-red';
+          case 32: return 'ansi-green';
+          case 33: return 'ansi-yellow';
+          case 34: return 'ansi-blue';
+          case 35: return 'ansi-magenta';
+          case 36: return 'ansi-cyan';
+          case 37: return 'ansi-white';
+          case 90: return 'ansi-bright-black';
+          case 97: return 'ansi-bright-white';
+          case 0: return '/RESET/';
+        }
+        return '';
+      }).filter(Boolean);
+      if(classes.includes('/RESET/')) return '</span>'; // naive
+      return `<span class="${classes.join(' ')}">`;
+    }).replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // printing helpers
+  function printLine(text, options={}){
+    const div = document.createElement('div');
+    div.className = 'line output';
+    let formatted = text===undefined||text===''? '': text;
+    // support multiline
+    formatted = String(formatted).split('\n').map(s=>ansiToHtml(s)).join('<br>');
+    div.innerHTML = formatted;
+    screen.appendChild(div);
+    screen.scrollTop = screen.scrollHeight;
+  }
+
+  function printPrompt(){
+    promptEl.textContent = `${user}@${hostname}:${cwd}$`;
+    editor.innerHTML = '';
+    placeCaretAtEnd(editor);
+  }
+
+  // execute command line
+  function runCommand(lineRaw){
+    const line = String(lineRaw).trim();
+    // echo typed line to screen
+    printLine(`${user}@${hostname}:${cwd}$ ${escapeHtml(line)}`);
+    if(!line){ return; }
+    history.unshift(line); historyCursor = -1;
+    // handle pipes and ; (simple split)
+    const parts = line.split(/\s*;\s*/);
+    let out = '';
+    for(const part of parts){
+      // very naive tokenization supporting quoted strings
+      const args = splitArgs(part);
+      if(args.length===0) continue;
+      const cmd = args.shift();
+      if(commands[cmd]){
+        try{ out = commands[cmd](args) }catch(e){ out = `Erreur: ${e.message}` }
+      } else {
+        out = `${cmd}: commande introuvable`;
+      }
+      if(out) printLine(out);
+    }
+  }
+
+  function splitArgs(str){
+    const re = /(?:"([^"]*)")|(?:'([^']*)')|([^\s]+)/g;
+    const res = [];
+    let m;
+    while((m=re.exec(str))){
+      res.push(m[1]||m[2]||m[3]);
+    }
+    return res;
+  }
+
+  function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // history navigation
+  function historyPrev(){ if(history.length===0) return; historyCursor = Math.min(history.length-1, historyCursor+1); editor.textContent = history[historyCursor]; placeCaretAtEnd(editor); }
+  function historyNext(){ if(history.length===0) return; if(historyCursor<=0){ historyCursor = -1; editor.textContent = ''; } else { historyCursor--; editor.textContent = history[historyCursor]; } placeCaretAtEnd(editor); }
+
+  // autocomplete
+  function autocomplete(){
+    const text = editor.textContent || '';
+    const tokens = text.split(/\s+/);
+    const last = tokens[tokens.length-1] || '';
+    // if first token -> complete command
+    if(tokens.length===1){
+      const matches = builtins.filter(c=>c.startsWith(last));
+      if(matches.length===1){ editor.textContent = matches[0] + ' '; placeCaretAtEnd(editor); }
+      else if(matches.length>1){ printLine(matches.join('\t')); }
+      return;
+    }
+    // otherwise complete file/dir in cwd
+    const base = tokens[0];
+    const partial = last;
+    const dirPath = (partial.includes('/'))? resolvePath(partial.replace(/\/[^/]*$/,'')) : cwd;
+    const entries = (fs[dirPath] && fs[dirPath].children) || [];
+    const candidates = entries.filter(e=>e.startsWith(partial.split('/').pop()));
+    if(candidates.length===1){
+      // replace last token
+      tokens[tokens.length-1] = (partial.includes('/')? partial.replace(/\/[^/]*$/,'') + '/' : '') + candidates[0];
+      editor.textContent = tokens.join(' ') + (fs[dirPath+'/'+candidates[0]] && fs[dirPath+'/'+candidates[0]].type==='dir' ? '/' : ' ');
+      placeCaretAtEnd(editor);
+    } else if(candidates.length>1){ printLine(candidates.join('\t')); }
+  }
+
+  // caret management
+  function placeCaretAtEnd(el){
+    el.focus();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  }
+
+  // handle Enter
+  editor.addEventListener('keydown', (e)=>{
+    if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); const text = editor.textContent.replace(/\u00A0/g,' '); runCommand(text); editor.textContent=''; }
+    else if(e.key==='ArrowUp' && !e.ctrlKey){ e.preventDefault(); historyPrev(); }
+    else if(e.key==='ArrowDown'){ e.preventDefault(); historyNext(); }
+    else if(e.key==='Tab'){ e.preventDefault(); autocomplete(); }
+    else if((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==='l'){ e.preventDefault(); commands.clear(); }
+  });
+
+  // paste: preserve newlines as separate commands
+  editor.addEventListener('paste', (e)=>{
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    // split lines and run sequentially
+    const lines = text.split(/\r?\n/).map(s=>s.trim()).filter(s=>s.length>0);
+    if(lines.length===0) return;
+    // insert first line into current editor, run rest
+    editor.textContent = lines.shift(); placeCaretAtEnd(editor);
+    for(const l of lines){ runCommand(l); }
+  });
+
+  // click to focus
+  screen.addEventListener('click', ()=>{ editor.focus(); });
+
+  // expose some UI
+  btnClear.addEventListener('click', ()=>{ commands.clear(); printPrompt(); });
+  btnHelp.addEventListener('click', ()=>{ printLine(commands.help()); });
+
+
+  printPrompt();
+
+  // utility: small function to ensure screen is focused for accessibility
+  screen.setAttribute('tabindex','0');
+
+})();
+</script>
+</body>
+</html>
