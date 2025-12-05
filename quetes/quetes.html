@@ -37,6 +37,7 @@ body {
 h1, h2 {
   margin: 0 0 16px;
   letter-spacing: .3px;
+  padding: 4px;
 }
 
 /* Grid of theme cards */
@@ -67,6 +68,7 @@ h1, h2 {
 .theme-progress-text, .quest-progress-text {
   margin: 8px 0 10px;
   color: var(--text-dim);
+  padding: 2px;
 }
 
 /* Boutons uniquement pour actions */
@@ -109,7 +111,7 @@ button:active {
 /* Steps list */
 #stepsList {
   list-style: none;
-  padding: 0;
+  padding: 2px;
   margin: 16px 0 0;
 }
 #stepsList li {
@@ -152,6 +154,7 @@ button:active {
   background: var(--accent-orange);
   border-radius: 999px;
   transition: width .25s ease-in-out;
+  padding: 2px;
 }
 
 /* Meta info spacing */
@@ -196,7 +199,7 @@ const data = {
       description: "Apprendre à installer, utiliser et apprécier Linux comme système d'exploitation simple, libre et accessible, tout en découvrant ses avantages pour l'autonomie numérique.",
       quests: [
         {
-          title: "Installer Linux pour la première fois",
+          title: "1) Installer Linux pour la première fois",
           steps: [
             "Choisir une distribution adaptée (Ubuntu, Linux Mint, Fedora...)",
             "Télécharger l'image ISO depuis le site officiel",
@@ -206,7 +209,7 @@ const data = {
           ]
         },
         {
-          title: "Découvrir l'environnement de bureau",
+          title: "2) Découvrir l'environnement de bureau",
           steps: [
             "Se familiariser avec le menu des applications",
             "Tester les raccourcis clavier basiques (copier, coller, ouvrir un terminal)",
@@ -216,7 +219,7 @@ const data = {
           ]
         },
         {
-          title: "Installer des logiciels utiles",
+          title: "3) Installer des logiciels utiles",
           steps: [
             "Ouvrir le gestionnaire de paquets (ex: Ubuntu Software, Synaptic)",
             "Chercher et installer un navigateur web (Firefox, Brave...)",
@@ -226,13 +229,27 @@ const data = {
           ]
         },
         {
-          title: "Prouver que Linux est simple à utiliser",
+          title: "4) Prouver que Linux est simple à utiliser",
           steps: [
             "Tester la navigation web et constater la fluidité",
             "Rédiger un document avec LibreOffice",
             "Regarder une vidéo avec VLC",
             "Mettre à jour le système en un clic",
             "Partager son expérience avec un ami pour montrer la simplicité"
+          ]
+        },
+        {
+          title: "5) Prendre en main le terminal Linux",
+          steps: [
+            "Ouvrir le terminal depuis le menu ou avec le raccourci clavier (souvent Ctrl+Alt+T)",
+            "Découvrir la commande `pwd` pour connaître son emplacement actuel",
+            "Lister les fichiers avec `ls`",
+            "Se déplacer dans les dossiers avec `cd`",
+            "Créer un nouveau dossier avec `mkdir mon_dossier`",
+            "Créer un fichier texte avec `touch fichier.txt`",
+            "Lire le contenu d’un fichier avec `cat fichier.txt`",
+            "Supprimer un fichier avec `rm fichier.txt`",
+            "Fermer le terminal avec la commande `exit`"
           ]
         }
       ]
