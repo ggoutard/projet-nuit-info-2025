@@ -281,3 +281,42 @@ html, body {
   margin-bottom: 8px;
   font-style: italic;
 }
+
+/* Liste des filtres */
+.filters {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* Boutons de filtre */
+.filters button {
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Effet hover */
+.filters button:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary-dark);
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+/* Effet actif (quand sélectionné) */
+.filters button:active,
+.filters button.active {
+  background: var(--primary-dark);
+  color: white;
+  border-color: var(--primary-dark);
+}
