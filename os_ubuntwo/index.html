@@ -266,6 +266,7 @@
     <div class="app" data-app="calc" title="Calculatrice">🧮<span class="dot"></span></div>
     <div class="app" data-app="terminal" title="Terminal">⌨️<span class="dot"></span></div>
     <div class="app" data-app="browser" title="Navigateur">🌐<span class="dot"></span></div>
+    <div class="app" data-app="contact" title="Contact">📞<span class="dot"></span></div>
   </div>
 
   <!-- Desktop: gros boutons verre dépoli -->
@@ -436,6 +437,47 @@
     </div>
   </div>
 
+    <div class="window" id="win-browser" style="top:200px; left:420px; width:740px;">
+    <div class="titlebar">
+      <div class="win-title">Navigateur</div>
+      <div class="controls">
+        <div class="ctrl min" data-act="min">—</div>
+        <div class="ctrl max" data-act="max">□</div>
+        <div class="ctrl close" data-act="close">×</div>
+      </div>
+    </div>
+    <div class="window-content" style="grid-template-columns:1fr">
+      <div class="content">
+        <iframe id="browserFrame" class="frame" sandbox="allow-scripts allow-forms allow-same-origin"></iframe>
+      </div>
+    </div>
+  </div>
+
+<div class="window" id="win-contact" style="top:240px; left:480px; width:420px;">
+  <div class="titlebar">
+    <div class="win-title">Contact</div>
+    <div class="controls">
+      <div class="ctrl min" data-act="min">—</div>
+      <div class="ctrl max" data-act="max">□</div>
+      <div class="ctrl close" data-act="close">×</div>
+    </div>
+  </div>
+
+<div class="window-content" style="grid-template-columns:1fr; height: calc(100% - 48px);">
+  <div class="content" style="position:relative; padding:0; height:100%;">
+    <!-- Conteneur qui occupe tout l'espace restant (sans toolbar) -->
+    <div style="position:relative; width:100%; height:100%;">
+      <iframe
+        src="https://ggoutard.github.io/projet-nuit-info-2025/formulaire/formulaire.html"
+        style="position:absolute; inset:0; width:100%; height:100%; border:0; display:block;"
+        frameborder="0"
+        scrolling="auto"
+        title="Tâches - iframe">
+      </iframe>
+    </div>
+  </div>
+</div>
+
 <script>
   // Horloge
   const clockEl = document.getElementById('clock');
@@ -494,7 +536,10 @@
   });
 
   // Dock
-  const appMap = { files:'files', notes:'notes', calc:'calc', terminal:'terminal', browser:'browser' };
+  const appMap = { files:'files', notes:'notes', calc:'calc', terminal:'terminal', browser:'browser',todo: 'todo'};
+  
+  appMap['contact'] = 'contact';
+  
   document.querySelectorAll('.dock .app').forEach(app=>{
     app.addEventListener('click', ()=> openWin(appMap[app.dataset.app]));
   });
