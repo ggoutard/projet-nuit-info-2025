@@ -267,6 +267,8 @@
     <div class="app" data-app="terminal" title="Terminal">⌨️<span class="dot"></span></div>
     <div class="app" data-app="nav" title="Navigateur">🌐<span class="dot"></span></div>
     <div class="app" data-app="snake" title="Snake">🐍<span class="dot"></span></div>
+    <div class="app" data-app="cible" title="Laser Game">🎯<span class="dot"></span></div>
+    <div class="app" data-app="shoot" title="GAFAM WAR">🚀<span class="dot"></span></div>
     <div class="app" data-app="contact" title="Contact">📞<span class="dot"></span></div>
 
   </div>
@@ -506,6 +508,60 @@
     </div>
   </div>
 </div>
+</div>
+
+
+<div class="window" id="win-cible" style="top:240px; left:480px; width:420px;">
+  <div class="titlebar">
+    <div class="win-title">Laser Game</div>
+    <div class="controls">
+      <div class="ctrl min" data-act="min">—</div>
+      <div class="ctrl max" data-act="max">□</div>
+      <div class="ctrl close" data-act="close">×</div>
+    </div>
+  </div>
+
+<div class="window-content" style="grid-template-columns:1fr; height: calc(100% - 48px);">
+  <div class="content" style="position:relative; padding:0; height:100%;">
+    <!-- Conteneur qui occupe tout l'espace restant (sans toolbar) -->
+    <div style="position:relative; width:100%; height:100%;">
+      <iframe
+        src="https://ggoutard.github.io/projet-nuit-info-2025/lasergame/index.html"
+        style="position:absolute; inset:0; width:100%; height:100%; border:0; display:block;"
+        frameborder="0"
+        scrolling="auto"
+        title="Tâches - iframe">
+      </iframe>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="window" id="win-shoot" style="top:240px; left:480px; width:420px;">
+  <div class="titlebar">
+    <div class="win-title">GAFAM WAR</div>
+    <div class="controls">
+      <div class="ctrl min" data-act="min">—</div>
+      <div class="ctrl max" data-act="max">□</div>
+      <div class="ctrl close" data-act="close">×</div>
+    </div>
+  </div>
+
+<div class="window-content" style="grid-template-columns:1fr; height: calc(100% - 48px);">
+  <div class="content" style="position:relative; padding:0; height:100%;">
+    <!-- Conteneur qui occupe tout l'espace restant (sans toolbar) -->
+    <div style="position:relative; width:100%; height:100%;">
+      <iframe
+        src="https://ggoutard.github.io/projet-nuit-info-2025/shootthemup/index.html"
+        style="position:absolute; inset:0; width:100%; height:100%; border:0; display:block;"
+        frameborder="0"
+        scrolling="auto"
+        title="Tâches - iframe">
+      </iframe>
+    </div>
+  </div>
+</div>
+</div>
 
 
 
@@ -571,8 +627,11 @@
   // Dock
   const appMap = { files:'files', notes:'notes', calc:'calc', terminal:'terminal', nav:'nav',todo: 'todo'};
   
-  appMap['contact'] = 'contact';
-    appMap['snake'] = 'snake';
+appMap['contact'] = 'contact';
+appMap['snake'] = 'snake';
+appMap['cible'] = 'cible';
+appMap['shoot'] = 'shoot';
+
 
   
   document.querySelectorAll('.dock .app').forEach(app=>{
