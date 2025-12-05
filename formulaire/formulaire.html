@@ -446,6 +446,43 @@ retourFormBtn.addEventListener("click", function() {
   form.reset();  // réinitialise les champs
 });
 
+  // --- Nettoyage quand le formulaire est réinitialisé (form.reset())
+form.addEventListener('reset', function() {
+  // retire l'avertissement Gmail visuel
+  champEmail.classList.remove('gmail-warning');
+  gmailMessage.style.display = 'none';
+
+  // retire l'erreur message si présente
+  champMessage.classList.remove('erreur');
+  messageErreur.textContent = '';
+  messageErreur.style.display = 'none';
+
+  // reset du drapeau bloquant
+  messageBloquant = false;
+
+  // reset du bouton pour qu'il reste en place et avec le texte correct
+  btn.style.transform = 'translate(0,0)';
+  btn.textContent = 'Envoyer';
+});
+
+// --- Amélioration du bouton "Retour au formulaire"
+retourFormBtn.addEventListener("click", function() {
+  confirmationPage.style.display = "none";
+  form.style.display = "flex";
+  form.reset();  // réinitialise les champs (déclenchera l'écouteur 'reset' ci-dessus)
+
+  // S'assurer en plus que l'UI est propre (double sécurité)
+  champEmail.classList.remove('gmail-warning');
+  gmailMessage.style.display = 'none';
+  champMessage.classList.remove('erreur');
+  messageErreur.textContent = '';
+  messageErreur.style.display = 'none';
+  messageBloquant = false;
+  btn.style.transform = 'translate(0,0)';
+  btn.textContent = 'Envoyer';
+});
+
+
 
 modal.addEventListener("click", function(e) {
   if (e.target === modal) {
