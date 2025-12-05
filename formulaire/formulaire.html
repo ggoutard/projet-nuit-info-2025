@@ -187,11 +187,11 @@ button:hover {
 
 <script>
 const nomsInterdits = {
-  "tim cook": "Tu ne vas pas nous apprendre la recette du succès 🍎",
-  "mark zuckerberg": "On n’a pas besoin de ton réseau ici 📘",
-  "sundar pichai": "Pas la peine de chercher, on a déjà trouvé 🔍",
-  "satya nadella": "Le cloud est déjà bien rempli ☁️",
-  "jeff bezos": "Désolé, la fusée est partie sans toi 🚀"
+  "tim cook": "Tu ne vas pas nous apprendre la recette du succès !",
+  "mark zuckerberg": "On n’a pas besoin de ton réseau ici !",
+  "sundar pichai": "Pas la peine de chercher, on a déjà trouvé !",
+  "satya nadella": "Le cloud est déjà bien rempli !",
+  "jeff bezos": "Désolé, la fusée est partie sans toi !"
 };
 
 const champNom = document.getElementById("nom");
@@ -254,11 +254,11 @@ btn.addEventListener("mouseover", function() {
 champMessage.addEventListener("input", function() {
   const valeur = champMessage.value.trim().toLowerCase();
   const interdits = {
-    "bonjour": "Tu peux être plus original 😏",
-    "bonsoir": "Tu peux être plus original 😏",
-    "au revoir": "Tu peux être plus original 😏",
-    "merci": "Tu peux être plus original 😏",
-    "hello world": "Tu t'es trompé de terminal 💻"
+    "bonjour": "Tu n'as rien de plus original que \"Bonjour\" ?",
+    "bonsoir": "Es-tu sûr que c'est l'heure de dire \"Bonsoir\" ? ",
+    "au revoir": "Espèce de malpoli ! ",
+    "merci": "Pourquoi tu nous remercies déjà ? On n'a pas encore répondu !",
+    "hello world": "Tu t'es trompé de terminal..."
   };
   let message = "";
   for (const mot in interdits) {
@@ -364,7 +364,7 @@ const questions = [
   { q: "Combien de côtés a un triangle carré ?", a: "7" },
   { q: "Tape le cri du lama (indice : gnagnagna)", a: "gnagnagna" },
   { q: "Quelle est la couleur du vent ?", a: "transparent" },
-  { q: "Écris 'banane' mais avec un Z à la place du B", a: "zanane" }
+  { q: "Écris 'Banane' mais avec un z à la place du B", a: "zanane" }
 ];
 let currentCaptcha = null;
 
@@ -383,7 +383,7 @@ captchaValiderBtn.addEventListener("click", function() {
     modal.style.display = "none";
     form.submit();
   } else {
-    captchaErreurEl.textContent = "Mauvaise réponse 😜";
+    captchaErreurEl.textContent = "On savait que tu étais un robot !";
   }
 });
 
