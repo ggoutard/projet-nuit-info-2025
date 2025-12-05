@@ -261,7 +261,7 @@
 
   <!-- Dock -->
   <div class="dock">
-    <div class="app" data-app="files" title="Fichiers">🗂<span class="dot"></span></div>
+    <div class="app" data-app="fichier" title="Fichiers">🗂<span class="dot"></span></div>
     <div class="app" data-app="notes" title="Bloc-notes">📝<span class="dot"></span></div>
     <div class="app" data-app="target" title="Objectif">✅<span class="dot"></span></div>
     <div class="app" data-app="terminal" title="Terminal">⌨️<span class="dot"></span></div>
@@ -591,6 +591,58 @@
 </div>
 </div>
 
+<div class="window" id="win-fichier" style="top:240px; left:480px; width:420px;">
+  <div class="titlebar">
+    <div class="win-title">Explorateur de fichiers</div>
+    <div class="controls">
+      <div class="ctrl min" data-act="min">—</div>
+      <div class="ctrl max" data-act="max">□</div>
+      <div class="ctrl close" data-act="close">×</div>
+    </div>
+  </div>
+
+<div class="window-content" style="grid-template-columns:1fr; height: calc(100% - 48px);">
+  <div class="content" style="position:relative; padding:0; height:100%;">
+    <!-- Conteneur qui occupe tout l'espace restant (sans toolbar) -->
+    <div style="position:relative; width:100%; height:100%;">
+      <iframe
+        src="https://ggoutard.github.io/projet-nuit-info-2025/explorateur/index.html"
+        style="position:absolute; inset:0; width:100%; height:100%; border:0; display:block;"
+        frameborder="0"
+        scrolling="auto"
+        title="Tâches - iframe">
+      </iframe>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="window" id="win-term" style="top:240px; left:480px; width:420px;">
+  <div class="titlebar">
+    <div class="win-title">Terminal</div>
+    <div class="controls">
+      <div class="ctrl min" data-act="min">—</div>
+      <div class="ctrl max" data-act="max">□</div>
+      <div class="ctrl close" data-act="close">×</div>
+    </div>
+  </div>
+
+<div class="window-content" style="grid-template-columns:1fr; height: calc(100% - 48px);">
+  <div class="content" style="position:relative; padding:0; height:100%;">
+    <!-- Conteneur qui occupe tout l'espace restant (sans toolbar) -->
+    <div style="position:relative; width:100%; height:100%;">
+      <iframe
+        src="https://ggoutard.github.io/projet-nuit-info-2025/terminal/terminal.html"
+        style="position:absolute; inset:0; width:100%; height:100%; border:0; display:block;"
+        frameborder="0"
+        scrolling="auto"
+        title="Tâches - iframe">
+      </iframe>
+    </div>
+  </div>
+</div>
+</div>
+
 
 
 
@@ -652,7 +704,7 @@
   });
 
   // Dock
-  const appMap = { files:'files', notes:'notes', calc:'calc', terminal:'terminal', nav:'nav',todo: 'todo'};
+  const appMap = { fichier:'fichier', notes:'notes', calc:'calc', terminal:'term', nav:'nav',todo: 'todo'};
   
 appMap['contact'] = 'contact';
 appMap['snake'] = 'snake';
