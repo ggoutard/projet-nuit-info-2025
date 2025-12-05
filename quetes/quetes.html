@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>NIRD - Système de Quêtes</title>
+  <style>
+/* Dark Neon Theme */
+:root{
+  --bg:#0b0b0f;
+  --surface:#111119;
+  --surface-2:#0e0e16;
+
+  --text:#e8ebf2;
+  --text-dim:#9aa0ac;
+
+  --neon-cyan:#00e5ff;
+  --neon-pink:#ff2aa1;
+  --neon-purple:#9d4dff;
+  --neon-green:#25ff9a;
+  --neon-yellow:#ffd54a;
+
+  --radius:14px;
+  --radius-sm:10px;
+
+  --glow-soft:0 0 12px rgba(0,229,255,.35), 0 0 24px rgba(157,77,255,.25);
+  --glow-strong:0 0 16px rgba(0,229,255,.55), 0 0 36px rgba(255,42,161,.35);
+  --glow-card:0 0 20px rgba(157,77,255,.22), inset 0 0 14px rgba(0,229,255,.14);
+}
+
+/* Base */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,sans-serif;
+  background:#000;
+  color:var(--text);
+  padding:24px;
+  /* subtle vignette + grid glow */
+  background:
+    radial-gradient(1200px 800px at 80% 20%, #0b0b0f 0%, #000 60%),
+    #000;
+}
+
+/* Neon grid backdrop */
+body::before{
+  content:"";
+  position:fixed; inset:0; pointer-events:none; z-index:-1;
+  background:
+    radial-gradient(800px 520px at 20% 80%, rgba(157,77,255,.12), transparent 60%),
+    radial-gradient(700px 480px at 80% 20%, rgba(0,229,255,.12), transparent 62%);
+  filter:saturate(130%);
+}
+
+/* Utilities */
+.hidden{display:none !important}
+
+/* Headings with slight glow */
+h1,h2{
+  margin:0 0 14px;
+  text-shadow:0 0 10px rgba(0,229,255,.25), 0 0 18px rgba(157,77,255,.18);
+  letter-spacing:.3px;
+}
+
+/* Grid of theme cards */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:22px;
+}
+
+/* Neon card */
+.card{
+  position:relative;
+  padding:16px 18px;
+  border-radius:var(--radius);
+  background:linear-gradient(180deg, var(--surface), var(--surface-2));
+  color:var(--text);
+  cursor:pointer;
+  /* fake neon border using gradient border-image */
+  border:2px solid transparent;
+  background-clip:padding-box;
+}
+.card::before{
+  content:"";
+  position:absolute; inset:-2px;
+  border-radius:inherit;
+  padding:2px;
+  background:linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+.card:hover{
+  box-shadow:var(--glow-card);
+  transform:translateY(-2px);
+}
+.card .name{
+  font-weight:700; margin-bottom:6px;
+  color:#eaf7ff;
+}
+.card .meta{
+  color:var(--text-dim); font-size:13px;
+}
+
+.neon-container::before{
+  content:"";
+  position:absolute; inset:-2px;
+  border-radius:inherit;
+  padding:2px;
+  background:linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+  pointer-events:none;
+}
+
+
+/* Panels for theme/quest pages */
+#themeDetail, #questDetail, #themesPage{
+  max-width:860px; margin:0 auto;
+  border-radius:var(--radius);
+  padding:18px 20px;
+  background:linear-gradient(180deg, var(--surface), var(--surface-2));
+  border:2px solid transparent;
+  position:relative;
+}
+#themeDetail::before, #questDetail::before, #themesPage::before{
+  content:"";
+  position:absolute; inset:-2px; border-radius:inherit; padding:2px;
+  background:linear-gradient(135deg, var(--neon-purple), var(--neon-cyan));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+}
+#themeDetail:hover, #questDetail:hover, #themesPage:hover{
+  box-shadow:var(--glow-soft);
+}
+
+/* Buttons with neon border */
+button{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:10px 14px;
+  border-radius:var(--radius-sm);
+  background:linear-gradient(180deg, #0f0f16, #12121a);
+  color:var(--text);
+  border:2px solid transparent;
+  position:relative;
+  font-weight:700;
+  letter-spacing:.2px;
+  transition:transform .2s, box-shadow .2s, filter .2s;
+}
+button::before{
+  content:"";
+  position:absolute; inset:-2px; border-radius:inherit; padding:2px;
+  background:linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+}
+button:hover{
+  transform:translateY(-2px);
+  box-shadow:var(--glow-strong);
+  filter:brightness(1.08);
+}
+button:active{
+  transform:scale(.98);
+}
+
+#questsList{
+  list-style:none; padding:0; margin:0;
+}
+#questsList li{ margin:10px 0 }
+#questsList li button{
+  width:100%;
+  justify-content:flex-start;
+  background:linear-gradient(180deg, #0f0f16, #14141d);
+}
+
+/* Steps list with neon checkboxes */
+#stepsList{
+  list-style:none; padding:0; margin:14px 0 0;
+}
+#stepsList li{
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px;
+  margin-bottom:10px;
+  border-radius:var(--radius-sm);
+  background:linear-gradient(180deg, #0d0d14, #11111a);
+  position:relative;
+  border:2px solid transparent;
+}
+#stepsList li::before{
+  content:"";
+  position:absolute; inset:-2px; border-radius:inherit; padding:2px;
+  background:linear-gradient(135deg, var(--neon-yellow), var(--neon-green));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+  opacity:.6;
+}
+#stepsList input[type=checkbox]{
+  width:18px; height:18px; cursor:pointer;
+  appearance:none;
+  border-radius:6px;
+  border:2px solid var(--neon-green);
+  box-shadow:0 0 10px rgba(37,255,154,.4);
+  background:#000;
+  position:relative;
+}
+#stepsList input[type=checkbox]:checked{
+  background:linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
+  box-shadow:0 0 14px rgba(37,255,154,.7), 0 0 26px rgba(0,229,255,.5);
+}
+#stepsList input[type=checkbox]::after{
+  content:"";
+  position:absolute; inset:3px; border-radius:4px;
+  background:transparent;
+}
+
+/* Progress text + neon bar container */
+#questDetail p{
+  margin:6px 0 10px;
+  color:#cfeaff;
+  text-shadow:0 0 10px rgba(0,229,255,.35);
+}
+
+/* Progress bar */
+.progress{
+  height:10px;
+  background:#050507;
+  border-radius:999px;
+  overflow:hidden;
+  border:2px solid transparent;
+  position:relative;
+}
+.progress::before{
+  content:"";
+  position:absolute; inset:-2px; border-radius:inherit; padding:2px;
+  background:linear-gradient(90deg, var(--neon-cyan), var(--neon-pink), var(--neon-purple));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+  opacity:.7;
+}
+.progress-bar{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg, var(--neon-green), var(--neon-cyan), var(--neon-pink));
+  box-shadow:0 0 16px rgba(0,229,255,.6), 0 0 24px rgba(255,42,161,.45);
+  transition:width .25s ease-in-out;
+  border-radius:999px;
+}
+
+
+
+/* Meta info spacing */
+p, ul{padding:0}
+
+  </style>
+</head>
+<body>
+
+  <!-- Page des thèmes -->
+  <div id="themesPage">
+    <h1>Vos missions</h1>
+    <div class="grid" id="themesGrid"></div>
+  </div>
+
+  <!-- Page d’un thème -->
+  <div id="themeDetail" class="hidden">
+    <button onclick="showThemes()">Retour</button>
+    <h2 id="themeTitle"></h2>
+    <ul id="questsList"></ul>
+  </div>
+
+  <!-- Page d’une quête -->
+<div id="questDetail" class="hidden">
+  <button onclick="showTheme()">⬅ Retour</button>
+  <h2 id="questTitle"></h2>
+  <p>Progression : <span id="questProgress">0%</span></p>
+
+  <!-- Barre de progression -->
+  <div class="progress">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <ul id="stepsList"></ul>
+</div>
+
+
+<script>
+const data = {
+  themes: [
+    {
+      name: "Logiciels Libres",
+      quests: [
+        {
+          title: "Découvrir les alternatives libres",
+          steps: [
+            "Identifier un logiciel propriétaire utilisé",
+            "Trouver son équivalent libre",
+            "Installer et tester en classe",
+            "Partager un retour d’expérience"
+          ]
+        },
+        {
+          title: "Former les utilisateurs",
+          steps: [
+            "Créer un mini-guide ou tutoriel",
+            "Organiser une séance de découverte",
+            "Collecter les impressions"
+          ]
+        }
+      ]
+    },
+    {
+      name: "Durabilité du matériel",
+      quests: [
+        {
+          title: "Allonger la durée de vie des PC",
+          steps: [
+            "Vérifier l’état des machines",
+            "Installer un OS léger",
+            "Tester la compatibilité",
+            "Documenter la procédure"
+          ]
+        }
+      ]
+    }
+  ]
+};
+
+// ← Ici : Initialisation des états des étapes
+data.themes.forEach(theme => {
+  theme.quests.forEach(quest => {
+    if (!quest.completedSteps) {
+      quest.completedSteps = Array(quest.steps.length).fill(false);
+    }
+  });
+});
+
+// Ensuite on peut appeler l'initialisation de l'affichage
+showThemes();
+
+
+let currentTheme = null;
+let currentQuest = null;
+
+// Afficher les thèmes
+function showThemes() {
+  document.getElementById("themesPage").classList.remove("hidden");
+  document.getElementById("themeDetail").classList.add("hidden");
+  document.getElementById("questDetail").classList.add("hidden");
+
+  const grid = document.getElementById("themesGrid");
+  grid.innerHTML = "";
+data.themes.forEach((theme, idx) => {
+  const div = document.createElement("div");
+  div.className = "card";
+  div.innerHTML = `<h3>${theme.name}</h3><p>${theme.quests.length} quêtes</p>`;
+
+  // Calculer progression du thème
+  let total = 0;
+  theme.quests.forEach(q => {
+    const completed = q.completedSteps ? q.completedSteps.filter(v => v).length : 0;
+    total += Math.round((completed / q.steps.length) * 100);
+  });
+  const themeProgressValue = Math.round(total / theme.quests.length);
+
+  // Texte de progression
+  const themeProgressText = document.createElement("p");
+  themeProgressText.className = "theme-progress-text";
+  themeProgressText.textContent = "Progression : " + themeProgressValue + "%";
+  themeProgressText.style.margin = "6px 0 8px";
+  themeProgressText.style.color = "#cfeaff";
+  themeProgressText.style.textShadow = "0 0 10px rgba(0,229,255,.35)";
+  div.appendChild(themeProgressText);
+
+  // Barre de progression
+  const themeProgress = document.createElement("div");
+  themeProgress.className = "progress";
+  const themeProgressBar = document.createElement("div");
+  themeProgressBar.className = "progress-bar";
+  themeProgressBar.style.width = themeProgressValue + "%";
+  themeProgress.appendChild(themeProgressBar);
+  div.appendChild(themeProgress);
+
+  div.onclick = () => showTheme(idx);
+  grid.appendChild(div);
+});
+
+
+
+}
+
+// Afficher un thème
+function showTheme(index = null) {
+  if (index !== null) currentTheme = data.themes[index];
+  document.getElementById("themesPage").classList.add("hidden");
+  document.getElementById("themeDetail").classList.remove("hidden");
+  document.getElementById("questDetail").classList.add("hidden");
+
+  document.getElementById("themeTitle").textContent = currentTheme.name;
+  const list = document.getElementById("questsList");
+  list.innerHTML = "";
+  currentTheme.quests.forEach((quest, idx) => {
+  const li = document.createElement("li");
+
+  const questContainer = document.createElement("div");
+  questContainer.style.position = "relative";
+  questContainer.style.borderRadius = "var(--radius-sm)";
+  questContainer.style.padding = "4px";
+  questContainer.style.background = "linear-gradient(180deg, #0f0f16, #14141d)";
+  questContainer.style.border = "2px solid transparent";
+  questContainer.style.backgroundClip = "padding-box";
+  questContainer.className = "neon-container";
+
+  const btn = document.createElement("button");
+  btn.textContent = quest.title;
+  btn.style.marginBottom = "6px";
+  btn.onclick = () => showQuest(idx);
+
+  // Calculer progression
+  const qCompleted = quest.completedSteps ? quest.completedSteps.filter(v => v).length : 0;
+  const qProgressValue = Math.round((qCompleted / quest.steps.length) * 100);
+
+  // Texte de progression
+  const questProgressText = document.createElement("p");
+  questProgressText.className = "quest-progress-text";
+  questProgressText.textContent = "Progression : " + qProgressValue + "%";
+  questProgressText.style.margin = "6px 0 8px";
+  questProgressText.style.color = "#cfeaff";
+  questProgressText.style.textShadow = "0 0 10px rgba(0,229,255,.35)";
+
+  // Barre de progression
+  const questProgress = document.createElement("div");
+  questProgress.className = "progress";
+  const questProgressBar = document.createElement("div");
+  questProgressBar.className = "progress-bar";
+  questProgressBar.style.width = qProgressValue + "%";
+  questProgress.appendChild(questProgressBar);
+
+  questContainer.appendChild(btn);
+  questContainer.appendChild(questProgressText);
+  questContainer.appendChild(questProgress);
+
+  li.appendChild(questContainer);
+  list.appendChild(li);
+});
+
+
+}
+
+// Afficher une quête
+function showQuest(index) {
+  currentQuest = currentTheme.quests[index];
+  document.getElementById("themesPage").classList.add("hidden");
+  document.getElementById("themeDetail").classList.add("hidden");
+  document.getElementById("questDetail").classList.remove("hidden");
+
+  document.getElementById("questTitle").textContent = currentQuest.title;
+  const list = document.getElementById("stepsList");
+  list.innerHTML = "";
+
+  currentQuest.stepsCheckboxes = [];
+currentQuest.steps.forEach((step, idx) => {
+  const li = document.createElement("li");
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  // Restaurer l'état depuis completedSteps
+  checkbox.checked = currentQuest.completedSteps[idx];
+  checkbox.onchange = () => {
+    currentQuest.completedSteps[idx] = checkbox.checked; // sauvegarder l'état
+    updateProgress();
+  };
+  li.appendChild(checkbox);
+  li.appendChild(document.createTextNode(" " + step));
+  list.appendChild(li);
+});
+
+
+
+  // Texte de progression au-dessus de la barre
+  let progressText = document.getElementById("questProgress");
+  progressText.textContent = "0%";
+
+  // Barre de progression principale (déjà existante dans HTML)
+  const progressBar = document.getElementById("progressBar");
+  progressBar.style.width = "0%";
+
+  updateProgress(); // met à jour la barre de progression principale
+}
+
+
+
+function updateProgress() {
+  if (!currentQuest) return;
+
+  const completed = currentQuest.completedSteps.filter(v => v).length;
+  const progress = Math.round((completed / currentQuest.steps.length) * 100);
+
+  // Mettre à jour la barre principale
+  document.getElementById("questProgress").textContent = progress + "%";
+  document.getElementById("progressBar").style.width = progress + "%";
+
+  // Mettre à jour les quêtes sur la page du thème
+  const questListItems = document.querySelectorAll("#questsList li");
+  currentTheme.quests.forEach((q, idx) => {
+    const qProgress = Math.round((q.completedSteps.filter(v => v).length / q.steps.length) * 100);
+    const questLi = questListItems[idx];
+    if (questLi) {
+      const questProgressBar = questLi.querySelector(".progress-bar");
+      const questProgressText = questLi.querySelector(".quest-progress-text");
+      if (questProgressBar) questProgressBar.style.width = qProgress + "%";
+      if (questProgressText) questProgressText.textContent = "Progression : " + qProgress + "%";
+    }
+  });
+
+  // Mettre à jour le thème sur la page des thèmes
+  const themeIndex = data.themes.indexOf(currentTheme);
+  const themeCards = document.querySelectorAll("#themesGrid .card");
+  if (themeCards[themeIndex]) {
+    let total = 0;
+    currentTheme.quests.forEach(q => {
+      total += Math.round((q.completedSteps.filter(v => v).length / q.steps.length) * 100);
+    });
+    const themeProgress = Math.round(total / currentTheme.quests.length);
+
+    const themeProgressBar = themeCards[themeIndex].querySelector(".progress-bar");
+    const themeProgressText = themeCards[themeIndex].querySelector(".theme-progress-text");
+    if (themeProgressBar) themeProgressBar.style.width = themeProgress + "%";
+    if (themeProgressText) themeProgressText.textContent = "Progression : " + themeProgress + "%";
+  }
+}
+
+
+
+function getQuestProgress(quest) {
+  if (!quest.steps || quest.steps.length === 0) return 0;
+  let completed = 0;
+  if (quest.stepsCheckboxes) {
+    quest.stepsCheckboxes.forEach(cb => { if (cb.checked) completed++; });
+  }
+  return Math.round((completed / quest.steps.length) * 100);
+}
+
+
+
+// Initialisation
+showThemes();
+</script>
+</body>
+</html>
